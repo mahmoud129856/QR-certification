@@ -1,0 +1,164 @@
+<!-- result.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نتيجة التحقق - نظام الشهادات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e9f2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+        }
+        
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: none;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--success) 0%, #4895ef 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .card-body {
+            padding: 30px;
+            background: white;
+        }
+        
+        .result-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        .student-info {
+            background-color: var(--light);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .info-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 18px;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .info-item strong {
+            color: var(--primary);
+        }
+        
+        .btn {
+            display: block;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            margin-bottom: 15px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, var(--success) 0%, #4895ef 100%);
+        }
+        
+        .btn-back {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <div class="result-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h1>تم التحقق بنجاح</h1>
+                <p>تم العثور على بيانات الطالب في سجلاتنا</p>
+            </div>
+            
+            <div class="card-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <div class="student-info">
+                    <div class="info-item">
+                        <i class="fas fa-user"></i> <strong>اسم الطالب:</strong> {{ name }}
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-star"></i> <strong>التقدير:</strong> {{ grade }}
+                    </div>
+                </div>
+                
+                <form method="POST" action="/download">
+                    <input type="hidden" name="name" value="{{ name }}">
+                    <input type="hidden" name="grade" value="{{ grade }}">
+                    <button type="submit" class="btn btn-download">
+                        <i class="fas fa-download"></i> تحميل الشهادة
+                    </button>
+                </form>
+                
+                <a href="/" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i> العودة للنموذج
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+</body>
+</html>

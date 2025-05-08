@@ -1,0 +1,16 @@
+2025-05-08 23:29:57,955 ERROR: Certificate generation failed: expected str, bytes or os.PathLike object, not BytesIO [in d:\QR app\app.py:58]
+Traceback (most recent call last):
+  File "d:\QR app\app.py", line 53, in generate_certificate
+    pdf.output(output)
+    ~~~~~~~~~~^^^^^^^^
+  File "C:\Users\Dell\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\fpdf\fpdf.py", line 1079, in output
+    f=open(name,'wb')
+TypeError: expected str, bytes or os.PathLike object, not BytesIO
+2025-05-08 23:30:31,438 ERROR: Certificate generation failed: expected str, bytes or os.PathLike object, not BytesIO [in d:\QR app\app.py:58]
+Traceback (most recent call last):
+  File "d:\QR app\app.py", line 53, in generate_certificate
+    pdf.output(output)
+    ~~~~~~~~~~^^^^^^^^
+  File "C:\Users\Dell\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\fpdf\fpdf.py", line 1079, in output
+    f=open(name,'wb')
+TypeError: expected str, bytes or os.PathLike object, not BytesIO
