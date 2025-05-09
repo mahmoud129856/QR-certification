@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>attendence</title>
+  <title>نظام حضور جامعة درايا</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
@@ -15,7 +15,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
+      position: relative;
     }
 
     .form-card {
@@ -24,23 +25,26 @@
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
       width: 400px;
       overflow: hidden;
+      position: relative;
+      z-index: 1;
     }
 
     .form-header {
       background-color: #2c60d9;
       color: white;
-      padding: 30px 20px 20px;
+      padding: 25px 20px 15px;
       text-align: center;
       position: relative;
     }
 
-    .form-header i {
-      font-size: 28px;
+    .university-logo {
+      height: 70px;
       margin-bottom: 10px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
     }
 
     .form-header h2 {
-      margin: 0;
+      margin: 5px 0 0;
       font-size: 22px;
       font-weight: 700;
     }
@@ -61,6 +65,12 @@
       border: 1px solid #ccc;
       font-size: 16px;
       box-sizing: border-box;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      border-color: #2c60d9;
+      outline: none;
     }
 
     .form-group i {
@@ -82,20 +92,81 @@
       border-radius: 10px;
       cursor: pointer;
       transition: background-color 0.3s ease;
+      margin-top: 10px;
     }
 
     .submit-btn:hover {
-      background-color: #244fb3;
+      background-color: #1a4db3;
+    }
+
+    .form-footer {
+      padding: 15px;
+      text-align: center;
+      background: #f8f9fa;
+      border-top: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    .contact-info {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .contact-info a {
+      color: #555;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .contact-info a:hover {
+      color: #2c60d9;
+    }
+
+    .developer-badge {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.9);
+      padding: 8px 15px;
+      border-radius: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .developer-badge a {
+      color: #2c60d9;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    @media (max-width: 480px) {
+      .form-card {
+        width: 90%;
+        margin: 20px auto;
+      }
+      
+      .developer-badge {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 10px;
+        width: max-content;
+      }
     }
   </style>
 </head>
 <body>
 
-   <div class="form-card">
+  <div class="form-card">
     <div class="form-header">
-      <i class="fas fa-certificate"></i>
+      <img src="https://via.placeholder.com/70x70?text=DERAYA+LOGO" alt="شعار جامعة درايا" class="university-logo">
       <h2>DERAYA UNIVERSITY</h2>
     </div>
+    
     <div class="form-body">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -109,18 +180,44 @@
       
       <form method="POST" action="/">
         <div class="form-group">
-          <input type="text" name="name" placeholder="Student name" required />
+          <input type="text" name="name" placeholder="اسم الطالب بالكامل" required />
           <i class="fas fa-user"></i>
         </div>
         <div class="form-group">
-          <input type="text" name="national_id" placeholder="National ID" required />
+          <input type="text" name="national_id" placeholder="الرقم القومي" required />
           <i class="fas fa-id-card"></i>
         </div>
         <button type="submit" class="submit-btn">
-          <i class="fas fa-search"></i> Search
+          <i class="fas fa-search"></i> بحث
         </button>
       </form>
     </div>
+    
+    <div class="form-footer">
+      <p>للاستفسارات أو الدعم الفني:</p>
+      <div class="contact-info">
+        <a href="mailto:mahmoudtaha01100808224@gmail.com" title="البريد الإلكتروني">
+          <i class="fas fa-envelope"></i>
+        </a>
+        <a href="tel:+201100808224" title="اتصال هاتفي">
+          <i class="fas fa-phone"></i>
+        </a>
+        <a href="https://wa.me/+201100808224" title="واتساب">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+        <a href="https://www.facebook.com/share/1HMk6HcD3t/" title="فيسبوك">
+          <i class="fab fa-facebook"></i>
+        </a>
+      </div>
+    </div>
   </div>
+
+  <div class="developer-badge">
+    <span>تطوير:</span>
+    <a href="mailto:mahmoudtaha01100808224@gmail.com" title="اتصل بالمطور">
+      <i class="fas fa-code"></i> فريق التطوير
+    </a>
+  </div>
+
 </body>
 </html>
