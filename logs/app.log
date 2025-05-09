@@ -14,3 +14,20 @@ Traceback (most recent call last):
   File "C:\Users\Dell\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\fpdf\fpdf.py", line 1079, in output
     f=open(name,'wb')
 TypeError: expected str, bytes or os.PathLike object, not BytesIO
+2025-05-09 03:20:25,281 ERROR: Failed to generate certificate: FPDF error: Undefined font: arabic B [in d:\APP\app.py:125]
+Traceback (most recent call last):
+  File "d:\APP\app.py", line 40, in generate_certificate
+    pdf.set_font('Arabic', 'B', 24)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dell\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\fpdf\fpdf.py", line 603, in set_font
+    self.error('Undefined font: '+family+' '+style)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dell\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\fpdf\fpdf.py", line 227, in error
+    raise RuntimeError('FPDF error: '+msg)
+RuntimeError: FPDF error: Undefined font: arabic B
+2025-05-09 03:25:05,924 ERROR: Certificate generation failed: name 'tempfile' is not defined [in d:\APP\app.py:112]
+Traceback (most recent call last):
+  File "d:\APP\app.py", line 91, in generate_certificate
+    temp_dir = tempfile.gettempdir()
+               ^^^^^^^^
+NameError: name 'tempfile' is not defined. Did you mean: 'compile'? Or did you forget to import 'tempfile'?

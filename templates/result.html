@@ -1,164 +1,72 @@
-<!-- result.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نتيجة التحقق - نظام الشهادات</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>الشهادة جاهزة</title>
     <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3a0ca3;
-            --success: #4cc9f0;
-            --light: #f8f9fa;
-            --dark: #212529;
-        }
-        
         body {
-            font-family: 'Tajawal', sans-serif;
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e9f2 100%);
-            min-height: 100vh;
+            font-family: 'Tajawal', Arial, sans-serif;
+            background-color: #f5f7fa;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            color: #333;
         }
-        
         .container {
-            max-width: 600px;
-            margin: 30px auto;
-        }
-        
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: none;
-            overflow: hidden;
-        }
-        
-        .card-header {
-            background: linear-gradient(135deg, var(--success) 0%, #4895ef 100%);
-            color: white;
+            max-width: 800px;
+            margin: 50px auto;
             padding: 30px;
-            text-align: center;
-        }
-        
-        .card-body {
-            padding: 30px;
-            background: white;
-        }
-        
-        .result-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
-        }
-        
-        .student-info {
-            background-color: var(--light);
-            padding: 20px;
+            background-color: white;
             border-radius: 10px;
-            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
-        
-        .info-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            font-size: 18px;
+        h1 {
+            color: #27ae60;
+            margin-bottom: 30px;
         }
-        
-        .info-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
+        .certificate-preview {
+            border: 2px dashed #bdc3c7;
+            padding: 20px;
+            margin: 30px 0;
+            background-color: #f9f9f9;
+            border-radius: 5px;
         }
-        
-        .info-item strong {
-            color: var(--primary);
-        }
-        
-        .btn {
-            display: block;
+        .btn-download {
+            background-color: #27ae60;
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 12px 25px;
             font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            margin-bottom: 15px;
+            border-radius: 5px;
             cursor: pointer;
-            font-family: 'Tajawal', sans-serif;
+            transition: background-color 0.3s;
         }
-        
-        .btn-download {
-            background: linear-gradient(135deg, var(--success) 0%, #4895ef 100%);
+        .btn-download:hover {
+            background-color: #219653;
         }
-        
         .btn-back {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        }
-        
-        .btn:hover {
-            opacity: 0.9;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
+            display: inline-block;
+            margin-top: 20px;
+            color: #3498db;
+            text-decoration: none;
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <div class="card">
-            <div class="card-header">
-                <div class="result-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <h1>تم التحقق بنجاح</h1>
-                <p>تم العثور على بيانات الطالب في سجلاتنا</p>
-            </div>
-            
-            <div class="card-body">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-                
-                <div class="student-info">
-                    <div class="info-item">
-                        <i class="fas fa-user"></i> <strong>اسم الطالب:</strong> {{ name }}
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-star"></i> <strong>التقدير:</strong> {{ grade }}
-                    </div>
-                </div>
-                
-                <form method="POST" action="/download">
-                    <input type="hidden" name="name" value="{{ name }}">
-                    <input type="hidden" name="grade" value="{{ grade }}">
-                    <button type="submit" class="btn btn-download">
-                        <i class="fas fa-download"></i> تحميل الشهادة
-                    </button>
-                </form>
-                
-                <a href="/" class="btn btn-back">
-                    <i class="fas fa-arrow-left"></i> العودة للنموذج
-                </a>
-            </div>
+        <h1>تهانينا! الشهادة جاهزة للتحميل</h1>
+        <div class="certificate-preview">
+            <p>تم إنشاء شهادة حضور بنجاح للطالب:</p>
+            <h2>{{ name }}</h2>
+            <p>اضغط على الزر أدناه لتحميل الشهادة</p>
         </div>
+        <form method="POST" action="/download">
+            <input type="hidden" name="name" value="{{ name }}">
+            <button type="submit" class="btn-download">تحميل الشهادة</button>
+        </form>
+        <a href="/" class="btn-back">العودة إلى الصفحة الرئيسية</a>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 </body>
 </html>

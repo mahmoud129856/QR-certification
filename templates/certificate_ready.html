@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate ready</title>
+    <style>
+        body {
+            font-family: 'Tajawal', Arial, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #2259b1;
+            margin-bottom: 30px;
+        }
+        .certificate-preview {
+            border: 2px dashed #bdc3c7;
+            padding: 20px;
+            margin: 30px 0;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .btn-download {
+            background-color: #1a4487;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-download:hover {
+            background-color: #214e96;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #3498db;
+            text-decoration: none;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Congrats! The certificate is ready to print</h1>
+        <div class="certificate-preview">
+            <p>Certificate created successfully for the student:</p>
+            <h2>{{ name }}</h2>
+            <p>Click below to download the certificate</p>
+        </div>
+        <form method="POST" action="/download">
+            <input type="hidden" name="name" value="{{ name }}">
+            <button type="submit" class="btn-download">Download</button>
+        </form>
+        <a href="/" class="btn-back">Back to homepage</a>
+    </div>
+</body>
+</html>

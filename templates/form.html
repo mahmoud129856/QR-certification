@@ -1,166 +1,126 @@
-<!-- form.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الشهادات الإلكترونية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3a0ca3;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --success: #4cc9f0;
-            --danger: #e63946;
-        }
-        
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e9f2 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 600px;
-            margin: 30px auto;
-        }
-        
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: none;
-            overflow: hidden;
-        }
-        
-        .card-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .card-body {
-            padding: 30px;
-            background: white;
-        }
-        
-        .logo {
-            font-size: 50px;
-            margin-bottom: 15px;
-            color: white;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: var(--dark);
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            font-family: 'Tajawal', sans-serif;
-        }
-        
-        input:focus {
-            border-color: var(--primary);
-            outline: none;
-            box-shadow: 0 0 5px rgba(67, 97, 238, 0.3);
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            width: 100%;
-            cursor: pointer;
-            font-family: 'Tajawal', sans-serif;
-            margin-top: 10px;
-        }
-        
-        .btn:hover {
-            opacity: 0.9;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
-        }
-        
-        .alert-danger {
-            background-color: #ffebee;
-            color: var(--danger);
-            border: 1px solid #ffcdd2;
-        }
-        
-        .alert-success {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>attendence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .form-card {
+      background-color: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      width: 400px;
+      overflow: hidden;
+    }
+
+    .form-header {
+      background-color: #2c60d9;
+      color: white;
+      padding: 30px 20px 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    .form-header i {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .form-header h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .form-body {
+      padding: 25px 25px 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 45px 12px 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    .form-group i {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background-color: #2c60d9;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      background-color: #244fb3;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="card-header">
-                <div class="logo">
-                    <i class="fas fa-certificate"></i>
-                </div>
-                <h1>نظام الشهادات الإلكترونية</h1>
-            </div>
-            
-            <div class="card-body">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-                
-                <form method="POST" action="/">
-                    <div class="form-group">
-                        <label for="name"><i class="fas fa-user"></i> اسم الطالب الكامل:</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="national_id"><i class="fas fa-id-card"></i> الرقم القومي:</label>
-                        <input type="text" id="national_id" name="national_id" required 
-                               pattern="[0-9]+" title="الرجاء إدخال أرقام فقط">
-                    </div>
-                    
-                    <button type="submit" class="btn">
-                        <i class="fas fa-search"></i> البحث عن الطالب
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+   <div class="form-card">
+    <div class="form-header">
+      <i class="fas fa-certificate"></i>
+      <h2>DERAYA UNIVERSITY</h2>
+    </div>
+    <div class="form-body">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      
+      <form method="POST" action="/">
+        <div class="form-group">
+          <input type="text" name="name" placeholder="Student name" required />
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="form-group">
+          <input type="text" name="national_id" placeholder="National ID" required />
+          <i class="fas fa-id-card"></i>
+        </div>
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-search"></i> Search
+        </button>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
