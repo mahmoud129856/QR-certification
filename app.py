@@ -10,6 +10,16 @@ import pandas as pd
 from logging.handlers import RotatingFileHandler
 
 # إنشاء وتكوين التطبيق
+from flask import Flask, render_template, request, send_file, flash, redirect, url_for
+from PyPDF2 import PdfReader, PdfWriter
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+import io
+import os
+import logging
+import pandas as pd
+import sys
+
 def create_app():
     app = Flask(__name__)
     app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-123')
@@ -20,14 +30,11 @@ def create_app():
     app.config['EXCEL_PATH'] = os.path.join(BASE_DIR, 'students.xlsx')
 
     # إعداد السجلات
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
-    
-    file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
-    file_handler.setFormatter(logging.Formatter(
+    app.logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
+    app.logger.addHandler(handler)
 
     return app
 
