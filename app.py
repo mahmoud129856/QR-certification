@@ -8,17 +8,34 @@ import logging
 import pandas as pd
 from logging.handlers import RotatingFileHandler
 
-app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'
+# إنشاء وتكوين التطبيق
+def create_app():
+    app = Flask(__name__)
+    app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-123')
 
-# المسارات النسبية الآمنة
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_PATH = os.path.join(BASE_DIR, 'static', 'certificates', 'template.pdf')
-EXCEL_PATH = os.path.join(BASE_DIR, 'students.xlsx')
+    # تكوين المسارات
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    app.config['TEMPLATE_PATH'] = os.path.join(BASE_DIR, 'static', 'certificates', 'template.pdf')
+    app.config['EXCEL_PATH'] = os.path.join(BASE_DIR, 'students.xlsx')
+
+    # إعداد السجلات
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+    
+    file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+
+    return app
+
+app = create_app()
 
 def verify_student(name, national_id):
+    """التحقق من وجود الطالب في ملف Excel"""
     try:
-        df = pd.read_excel(EXCEL_PATH, engine='openpyxl')
+        df = pd.read_excel(app.config['EXCEL_PATH'], engine='openpyxl')
         df['Name'] = df['Name'].astype(str).str.strip()
         df['NationalID'] = df['NationalID'].astype(str).str.strip()
         
@@ -28,20 +45,28 @@ def verify_student(name, national_id):
         ]
         return not matches.empty
     except Exception as e:
-        app.logger.error(f"Error verifying student: {str(e)}")
+        app.logger.error(f"خطأ في التحقق من الطالب: {str(e)}")
         return False
 
 def generate_certificate(name):
+    """إنشاء شهادة PDF"""
     try:
-        template = PdfReader(open(TEMPLATE_PATH, "rb"))
+        template = PdfReader(open(app.config['TEMPLATE_PATH'], "rb"))
         page = template.pages[0]
         packet = io.BytesIO()
         can = canvas.Canvas(packet, pagesize=letter)
         
-        # إعداد النص (اضبط القيم حسب تصميمك)
-        text_width = can.stringWidth(name, "Helvetica-Bold", 50)
-        can.setFont("Helvetica-Bold", 50)
-        can.drawString((letter[0]-text_width)/2, 350, name)
+        # إعداد النص للغة العربية
+        text = name
+        font_name = "Helvetica"
+        font_size = 50
+        
+        # يمكنك استبدال الخط بخط يدعم العربية مثل:
+        # font_name = "Arabic-Typesetting" إذا كان مثبتاً على الخادم
+        
+        text_width = can.stringWidth(text, font_name, font_size)
+        can.setFont(font_name, font_size)
+        can.drawString((letter[0]-text_width)/2, 350, text)
         can.save()
         
         # دمج PDF
@@ -56,7 +81,7 @@ def generate_certificate(name):
         output_stream.seek(0)
         return output_stream
     except Exception as e:
-        app.logger.error(f"Certificate generation failed: {str(e)}")
+        app.logger.error(f"فشل إنشاء الشهادة: {str(e)}")
         return None
 
 @app.route('/', methods=['GET', 'POST'])
@@ -66,13 +91,13 @@ def index():
         national_id = request.form.get('national_id', '').strip()
         
         if not name or not national_id:
-            flash("All fields are required", "error")
+            flash("يجب إدخال اسم الطالب والرقم القومي", "error")
             return redirect(url_for('index'))
             
         if verify_student(name, national_id):
             return render_template('certificate_ready.html', name=name)
         else:
-            flash("Student not found. Please check your details.", "error")
+            flash("الطالب غير مسجل! يرجى التأكد من البيانات", "error")
     
     return render_template('form.html')
 
@@ -81,33 +106,25 @@ def download_certificate():
     try:
         name = request.form.get('name', '').strip()
         if not name:
-            flash("Name is required", "error")
+            flash("اسم الطالب مطلوب", "error")
             return redirect(url_for('index'))
             
         certificate = generate_certificate(name)
         if certificate:
+            filename = f"شهادة_حضور_{name.replace(' ', '_')}.pdf"
             return send_file(
                 certificate,
                 as_attachment=True,
-                download_name=f"Certificate_{name.replace(' ', '_')}.pdf",
+                download_name=filename,
                 mimetype='application/pdf'
             )
-        flash("Certificate generation failed", "error")
+        flash("فشل في إنشاء الشهادة", "error")
         return redirect(url_for('index'))
     except Exception as e:
-        app.logger.error(f"Download error: {str(e)}")
-        flash("An error occurred", "error")
+        app.logger.error(f"خطأ في التحميل: {str(e)}")
+        flash("حدث خطأ أثناء إنشاء الشهادة", "error")
         return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    # إعداد السجلات
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
-    
-    file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
-    file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
-    
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
