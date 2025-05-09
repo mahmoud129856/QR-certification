@@ -12,12 +12,7 @@ def create_app():
     app = Flask(__name__)
     app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-123')
 
-    # المسارات
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    app.config['TEMPLATE_PATH'] = os.path.join(BASE_DIR, 'static', 'certificates', 'template.pdf')
-    app.config['EXCEL_PATH'] = os.path.join(BASE_DIR, 'students.xlsx')
-
-    # إعداد اللوجينج ليشتغل مع Vercel (بدون الكتابة على ملفات)
+    # إعداد لوجينج بسيط بيطبع على الكونسول بس
     app.logger.setLevel(logging.INFO)
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(logging.Formatter(
@@ -25,7 +20,13 @@ def create_app():
     ))
     app.logger.addHandler(handler)
 
+    # المسارات
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    app.config['TEMPLATE_PATH'] = os.path.join(BASE_DIR, 'static', 'certificates', 'template.pdf')
+    app.config['EXCEL_PATH'] = os.path.join(BASE_DIR, 'students.xlsx')
+
     return app
+
 
 app = create_app()
 
