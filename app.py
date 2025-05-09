@@ -12,25 +12,25 @@ def create_app():
     app = Flask(__name__)
     app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-123')
 
-    # إعداد لوجينج بسيط بيطبع على الكونسول بس
-    app.logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    ))
-    app.logger.addHandler(handler)
-
-    # المسارات
+    # إعداد المسارات
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     app.config['TEMPLATE_PATH'] = os.path.join(BASE_DIR, 'static', 'certificates', 'template.pdf')
     app.config['EXCEL_PATH'] = os.path.join(BASE_DIR, 'students.xlsx')
 
-    return app
+    # إعداد التسجيل باستخدام StreamHandler فقط لتفادي مشاكل Vercel
+    app.logger.setLevel(logging.INFO)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    app.logger.addHandler(stream_handler)
 
+    return app
 
 app = create_app()
 
 def verify_student(name, national_id):
+    """التحقق من وجود الطالب في ملف Excel"""
     try:
         df = pd.read_excel(app.config['EXCEL_PATH'], engine='openpyxl')
         df['Name'] = df['Name'].astype(str).str.strip()
@@ -46,20 +46,23 @@ def verify_student(name, national_id):
         return False
 
 def generate_certificate(name):
+    """إنشاء شهادة PDF"""
     try:
         template = PdfReader(open(app.config['TEMPLATE_PATH'], "rb"))
         page = template.pages[0]
         packet = io.BytesIO()
         can = canvas.Canvas(packet, pagesize=letter)
 
-        font_name = "Helvetica"  # تأكد إنه مدعوم
+        # إعداد الخط
+        text = name
+        font_name = "Helvetica"
         font_size = 50
-
-        text_width = can.stringWidth(name, font_name, font_size)
+        text_width = can.stringWidth(text, font_name, font_size)
         can.setFont(font_name, font_size)
-        can.drawString((letter[0]-text_width)/2, 350, name)
+        can.drawString((letter[0]-text_width)/2, 350, text)
         can.save()
 
+        # دمج الشهادة
         packet.seek(0)
         overlay = PdfReader(packet)
         output = PdfWriter()
@@ -71,7 +74,7 @@ def generate_certificate(name):
         output_stream.seek(0)
         return output_stream
     except Exception as e:
-        app.logger.error(f"فشل في إنشاء الشهادة: {str(e)}")
+        app.logger.error(f"فشل إنشاء الشهادة: {str(e)}")
         return None
 
 @app.route('/', methods=['GET', 'POST'])
