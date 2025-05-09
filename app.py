@@ -20,6 +20,16 @@ import logging
 import pandas as pd
 import sys
 
+from flask import Flask, render_template, request, send_file, flash, redirect, url_for
+from PyPDF2 import PdfReader, PdfWriter
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+import io
+import os
+import logging
+import pandas as pd
+import sys
+
 def create_app():
     app = Flask(__name__)
     app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-123')
@@ -29,7 +39,7 @@ def create_app():
     app.config['TEMPLATE_PATH'] = os.path.join(BASE_DIR, 'static', 'certificates', 'template.pdf')
     app.config['EXCEL_PATH'] = os.path.join(BASE_DIR, 'students.xlsx')
 
-    # إعداد السجلات
+    # إعداد السجلات - معدل للعمل على Vercel
     app.logger.setLevel(logging.INFO)
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(logging.Formatter(
@@ -39,6 +49,8 @@ def create_app():
     return app
 
 app = create_app()
+
+# ... (أبقِ باقي الدوال والروابط كما هي دون تعديل))
 
 def verify_student(name, national_id):
     """التحقق من وجود الطالب في ملف Excel"""
