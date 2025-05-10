@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, send_file, flash, redirect, url_for
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
 import io
 import os
 import logging
@@ -12,12 +11,10 @@ def create_app():
     app = Flask(__name__)
     app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-123')
 
-    # إعداد المسارات
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     app.config['TEMPLATE_PATH'] = os.path.join(BASE_DIR, 'static', 'certificates', 'template.pdf')
     app.config['EXCEL_PATH'] = os.path.join(BASE_DIR, 'students.xlsx')
 
-    # إعداد التسجيل باستخدام StreamHandler فقط لتفادي مشاكل Vercel
     app.logger.setLevel(logging.INFO)
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(logging.Formatter(
@@ -30,7 +27,6 @@ def create_app():
 app = create_app()
 
 def verify_student(name, national_id):
-    """التحقق من وجود الطالب في ملف Excel"""
     try:
         df = pd.read_excel(app.config['EXCEL_PATH'], engine='openpyxl')
         df['Name'] = df['Name'].astype(str).str.strip()
@@ -46,36 +42,61 @@ def verify_student(name, national_id):
         return False
 
 def generate_certificate(name):
-    """إنشاء شهادة PDF"""
+    """إنشاء شهادة مع ضبط دقيق لموقع الاسم"""
     try:
+        # 1. قراءة ملف القالب
         template = PdfReader(open(app.config['TEMPLATE_PATH'], "rb"))
+        if len(template.pages) == 0:
+            raise ValueError("ملف القالب فارغ أو تالف")
+        
+        # 2. الحصول على أبعاد الصفحة
         page = template.pages[0]
+        page_width = float(page.mediabox[2])
+        page_height = float(page.mediabox[3])
+        
+        # 3. إنشاء طبقة الاسم
         packet = io.BytesIO()
-        can = canvas.Canvas(packet, pagesize=letter)
-
-        # إعداد الخط
-        text = name
-        font_name = "Helvetica"
-        font_size = 50
-        text_width = can.stringWidth(text, font_name, font_size)
+        can = canvas.Canvas(packet, pagesize=(page_width, page_height))
+        
+        # 4. إعداد الخط
+        font_name = "Helvetica-Bold"
+        font_size = 75
+        
+        # 5. الإحداثيات المطلوبة (ضبط هذه القيم حسب حاجتك)
+        x_pos = 565  # المسافة من الحافة اليسرى
+        y_pos = 985 # المسافة من الحافة السفلية
+        
+        # 6. حساب الإحداثيات الحقيقية (PDF يستخدم نظام إحداثيات من الأسفل)
+        real_y = page_height - y_pos
+        
+        # 7. رسم خلفية بيضاء لتغطية النص القديم
+        text_width = can.stringWidth(name, font_name, font_size)
+        can.setFillColorRGB(1, 1, 1)  # أبيض
+        can.rect(x_pos-5, real_y-15, text_width+10, 78, fill=1, stroke=0)
+        
+        # 8. كتابة الاسم الجديد
+        can.setFillColorRGB(0, 0, 0)  # أسود
         can.setFont(font_name, font_size)
-        can.drawString((letter[0]-text_width)/2, 350, text)
+        can.drawString(x_pos, real_y, name)
         can.save()
-
-        # دمج الشهادة
+        
+        # 9. دمج مع القالب
         packet.seek(0)
         overlay = PdfReader(packet)
+        
         output = PdfWriter()
         page.merge_page(overlay.pages[0])
         output.add_page(page)
-
+        
+        # 10. إرجاع النتيجة
         output_stream = io.BytesIO()
         output.write(output_stream)
         output_stream.seek(0)
+        
         return output_stream
+
     except Exception as e:
-        app.logger.error(f"فشل إنشاء الشهادة: {str(e)}")
-        return None
+        app.logger.error(f"فشل إنشاء الشهادة: {str(e)}", exc_info=True)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
