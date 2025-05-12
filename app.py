@@ -63,16 +63,13 @@ def generate_certificate(name):
         font_size = 75
         
         # 5. الإحداثيات المطلوبة (ضبط هذه القيم حسب حاجتك)
-        x_pos = 555  # المسافة من الحافة اليسرى
+        x_pos = 540  # المسافة من الحافة اليسرى
         y_pos = 985 # المسافة من الحافة السفلية
         
         # 6. حساب الإحداثيات الحقيقية (PDF يستخدم نظام إحداثيات من الأسفل)
         real_y = page_height - y_pos
         
         # 7. رسم خلفية بيضاء لتغطية النص القديم
-        text_width = can.stringWidth(name, font_name, font_size)
-        can.setFillColorRGB(1, 1, 1)  # أبيض
-        can.rect(x_pos-5, real_y-15, text_width+10, 78, fill=1, stroke=0)
         
         # 8. كتابة الاسم الجديد
         can.setFillColorRGB(0, 0, 0)  # أسود
