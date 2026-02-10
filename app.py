@@ -57,7 +57,7 @@ def generate_certificate(name):
         font_name = "Helvetica-Bold"
         font_size = 70
 
-        y_pos = 510
+        y_pos = 480
         real_y = page_height - y_pos
 
         # حساب عرض الاسم وتوسيطه أفقياً
