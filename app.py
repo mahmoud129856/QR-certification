@@ -58,7 +58,7 @@ def generate_certificate(name):
         font_size = 60
 
         x_pos = 320
-        y_pos = 440
+        y_pos = 490
         real_y = page_height - y_pos
 
         can.setFillColorRGB(0, 0, 0)
