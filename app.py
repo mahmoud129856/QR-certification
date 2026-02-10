@@ -55,10 +55,10 @@ def generate_certificate(name):
         can = canvas.Canvas(packet, pagesize=(page_width, page_height))
 
         font_name = "Helvetica-Bold"
-        font_size = 60
+        font_size = 75
 
-        x_pos = 320
-        y_pos = 490
+        x_pos = 330
+        y_pos = 510
         real_y = page_height - y_pos
 
         can.setFillColorRGB(0, 0, 0)
