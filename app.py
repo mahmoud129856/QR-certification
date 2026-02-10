@@ -32,40 +32,45 @@ def verify_student(name):
         df = pd.read_excel(app.config['EXCEL_PATH'], engine='openpyxl')
         df['Name'] = df['Name'].astype(str).str.strip()
 
-        matches = df[
-            df['Name'].str.upper() == name.strip().upper()
-        ]
+        matches = df[df['Name'].str.upper() == name.strip().upper()]
         return not matches.empty
+
     except Exception as e:
         app.logger.error(f"خطأ في التحقق من الطالب: {str(e)}")
         return False
 
 def generate_certificate(name):
-    """إنشاء شهادة مع ضبط دقيق لموقع الاسم"""
+    """إنشاء الشهادة مع توسيط الاسم أفقياً"""
     try:
+        # قراءة القالب
         template = PdfReader(open(app.config['TEMPLATE_PATH'], "rb"))
-        if len(template.pages) == 0:
-            raise ValueError("ملف القالب فارغ أو تالف")
-
         page = template.pages[0]
+
         page_width = float(page.mediabox[2])
         page_height = float(page.mediabox[3])
 
+        # إنشاء طبقة الكتابة
         packet = io.BytesIO()
         can = canvas.Canvas(packet, pagesize=(page_width, page_height))
 
+        # إعدادات النص (ثابتة)
         font_name = "Helvetica-Bold"
         font_size = 70
 
-        x_pos = 340
         y_pos = 510
         real_y = page_height - y_pos
 
-        can.setFillColorRGB(0, 0, 0)
+        # حساب عرض الاسم وتوسيطه أفقياً
+        text_width = can.stringWidth(name, font_name, font_size)
+        x_pos = (page_width - text_width) / 2
+
+        # رسم الاسم
         can.setFont(font_name, font_size)
+        can.setFillColorRGB(0, 0, 0)
         can.drawString(x_pos, real_y, name)
         can.save()
 
+        # دمج الطبقة مع القالب
         packet.seek(0)
         overlay = PdfReader(packet)
 
