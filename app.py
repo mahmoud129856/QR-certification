@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, send_file, flash, redirect, url_for
 from PyPDF2 import PdfReader, PdfWriter
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfbase import pdfmetrics
+from reportlab.lib import colors
 import arabic_reshaper
 from bidi.algorithm import get_display
 import io
@@ -26,15 +28,6 @@ def create_app():
         BASE_DIR, 'students.xlsx'
     )
 
-    app.config['FONT_PATH'] = os.path.join(
-        BASE_DIR, 'fonts', 'Amiri-Bold.ttf'
-    )
-
-    # تأكيد إن الخط موجود
-    print("BASE_DIR:", BASE_DIR)
-    print("FONT_PATH:", app.config['FONT_PATH'])
-    print("Font exists:", os.path.exists(app.config['FONT_PATH']))
-
     app.logger.setLevel(logging.INFO)
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(logging.Formatter(
@@ -48,6 +41,9 @@ def create_app():
 app = create_app()
 
 
+# =========================
+# التحقق من الطالب
+# =========================
 def verify_student(name):
     try:
         df = pd.read_excel(app.config['EXCEL_PATH'], engine='openpyxl')
@@ -61,6 +57,9 @@ def verify_student(name):
         return False
 
 
+# =========================
+# إنشاء الشهادة (دعم عربي مضمون)
+# =========================
 def generate_certificate(name):
     try:
         template = PdfReader(open(app.config['TEMPLATE_PATH'], "rb"))
@@ -70,33 +69,34 @@ def generate_certificate(name):
         page_height = float(page.mediabox[3])
 
         packet = io.BytesIO()
-        can = canvas.Canvas(packet, pagesize=(page_width, page_height))
 
-        # تسجيل الخط مرة واحدة فقط
-        if 'ArabicFont' not in pdfmetrics.getRegisteredFontNames():
-            pdfmetrics.registerFont(
-                TTFont('ArabicFont', app.config['FONT_PATH'])
-            )
+        doc = SimpleDocTemplate(
+            packet,
+            pagesize=(page_width, page_height)
+        )
 
-        # معالجة النص العربي
+        # تسجيل خط عربي CID (مضمون)
+        pdfmetrics.registerFont(UnicodeCIDFont('HYSMyeongJo-Medium'))
+
+        styles = getSampleStyleSheet()
+
+        arabic_style = ParagraphStyle(
+            'ArabicStyle',
+            parent=styles['Normal'],
+            fontName='HYSMyeongJo-Medium',
+            fontSize=48,
+            textColor=colors.black,
+            alignment=1
+        )
+
+        # معالجة العربي
         reshaped_text = arabic_reshaper.reshape(name)
         bidi_text = get_display(reshaped_text)
 
-        font_size = 70
-        y_pos = 410
-        real_y = page_height - y_pos
+        paragraph = Paragraph(bidi_text, arabic_style)
 
-        # حساب عرض النص بعد المعالجة
-        text_width = pdfmetrics.stringWidth(
-            bidi_text, 'ArabicFont', font_size
-        )
-
-        x_pos = (page_width - text_width) / 2
-
-        can.setFont('ArabicFont', font_size)
-        can.setFillColorRGB(0, 0, 0)
-        can.drawString(x_pos, real_y, bidi_text)
-        can.save()
+        story = [paragraph]
+        doc.build(story)
 
         packet.seek(0)
         overlay = PdfReader(packet)
@@ -119,6 +119,9 @@ def generate_certificate(name):
         return None
 
 
+# =========================
+# الصفحة الرئيسية
+# =========================
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -134,11 +137,14 @@ def index():
                 name=name
             )
         else:
-            flash("الطالب غير مسجل! يرجى التأكد من الاسم", "error")
+            flash("الطالب غير مسجل!", "error")
 
     return render_template('form.html')
 
 
+# =========================
+# تحميل الشهادة
+# =========================
 @app.route('/download', methods=['POST'])
 def download_certificate():
     try:
