@@ -1,10 +1,9 @@
 from flask import Flask, render_template, request, send_file, flash, redirect, url_for
 from PyPDF2 import PdfReader, PdfWriter
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib import colors
 import arabic_reshaper
 from bidi.algorithm import get_display
 import io
@@ -12,7 +11,6 @@ import os
 import logging
 import pandas as pd
 import sys
-import requests
 
 
 def create_app():
@@ -28,12 +26,6 @@ def create_app():
     app.config['EXCEL_PATH'] = os.path.join(
         BASE_DIR, 'students.xlsx'
     )
-    
-    # مجلد للخطوط
-    app.config['FONTS_DIR'] = os.path.join(BASE_DIR, 'static', 'fonts')
-    
-    # إنشاء مجلد الخطوط إذا لم يكن موجوداً
-    os.makedirs(app.config['FONTS_DIR'], exist_ok=True)
 
     app.logger.setLevel(logging.INFO)
     stream_handler = logging.StreamHandler(sys.stdout)
@@ -46,70 +38,6 @@ def create_app():
 
 
 app = create_app()
-
-
-# =========================
-# تحميل الخطوط تلقائياً
-# =========================
-def download_arabic_fonts():
-    """تحميل الخطوط العربية تلقائياً إذا لم تكن موجودة"""
-    fonts = {
-        'Amiri-Regular.ttf': 'https://github.com/alif-type/amiri/releases/download/1.000/Amiri-Regular.ttf',
-        'Amiri-Bold.ttf': 'https://github.com/alif-type/amiri/releases/download/1.000/Amiri-Bold.ttf'
-    }
-    
-    for font_name, font_url in fonts.items():
-        font_path = os.path.join(app.config['FONTS_DIR'], font_name)
-        if not os.path.exists(font_path):
-            try:
-                app.logger.info(f"جاري تحميل الخط: {font_name}")
-                response = requests.get(font_url)
-                with open(font_path, 'wb') as f:
-                    f.write(response.content)
-                app.logger.info(f"تم تحميل الخط: {font_name}")
-            except Exception as e:
-                app.logger.error(f"فشل تحميل الخط {font_name}: {str(e)}")
-                return False
-    return True
-
-# تحميل الخطوط عند بدء التشغيل
-download_arabic_fonts()
-
-
-# =========================
-# تهيئة الخطوط العربية
-# =========================
-def setup_arabic_fonts():
-    """تسجيل الخطوط العربية في ReportLab"""
-    try:
-        font_path_regular = os.path.join(app.config['FONTS_DIR'], 'Amiri-Regular.ttf')
-        font_path_bold = os.path.join(app.config['FONTS_DIR'], 'Amiri-Bold.ttf')
-        
-        # استخدام خط Amiri إذا كان موجوداً
-        if os.path.exists(font_path_regular):
-            pdfmetrics.registerFont(TTFont('ArabicFont', font_path_regular))
-            pdfmetrics.registerFont(TTFont('ArabicFont-Bold', font_path_bold))
-            app.logger.info("تم تسجيل خط Amiri بنجاح")
-            return True
-        else:
-            # بديل: استخدام خط النظام
-            try:
-                # للينكس
-                pdfmetrics.registerFont(TTFont('ArabicFont', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
-                app.logger.info("تم تسجيل خط DejaVu Sans")
-                return True
-            except:
-                try:
-                    # للويندوز
-                    pdfmetrics.registerFont(TTFont('ArabicFont', 'C:\\Windows\\Fonts\\Arial.ttf'))
-                    app.logger.info("تم تسجيل خط Arial")
-                    return True
-                except:
-                    app.logger.error("لم يتم العثور على خطوط عربية")
-                    return False
-    except Exception as e:
-        app.logger.error(f"خطأ في تسجيل الخطوط: {str(e)}")
-        return False
 
 
 # =========================
@@ -129,86 +57,82 @@ def verify_student(name):
 
 
 # =========================
-# إنشاء الشهادة (دعم عربي مضمون 100%)
+# إنشاء الشهادة - طريقة مباشرة باستخدام canvas
 # =========================
 def generate_certificate(name):
     try:
+        # قراءة ملف القالب
         template = PdfReader(open(app.config['TEMPLATE_PATH'], "rb"))
         page = template.pages[0]
-
+        
+        # الحصول على أبعاد الصفحة
         page_width = float(page.mediabox[2])
         page_height = float(page.mediabox[3])
-
+        
+        # إنشاء overlay PDF
         packet = io.BytesIO()
-
-        doc = SimpleDocTemplate(
-            packet,
-            pagesize=(page_width, page_height)
-        )
-
-        # تسجيل الخطوط العربية
-        if not setup_arabic_fonts():
-            # إذا فشل تسجيل الخط، استخدم خطاً بديلاً
-            try:
-                pdfmetrics.registerFont(TTFont('ArabicFont', os.path.join(app.config['FONTS_DIR'], 'Amiri-Regular.ttf')))
-            except:
-                # آخر بديل
-                from reportlab.pdfbase.cidfonts import UnicodeCIDFont
-                pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
-                app.logger.warning("استخدام خط STSong-Light كبديل أخير")
-
-        styles = getSampleStyleSheet()
-
-        arabic_style = ParagraphStyle(
-            'ArabicStyle',
-            parent=styles['Normal'],
-            fontName='ArabicFont',
-            fontSize=40,  # حجم مناسب للشهادة
-            textColor=colors.black,
-            alignment=1,  # توسيط
-            spaceAfter=20,
-            spaceBefore=20
-        )
-
-        # معالجة النص العربي بشكل صحيح
+        c = canvas.Canvas(packet, pagesize=(page_width, page_height))
+        
+        # محاولة استخدام خط يدعم العربية
         try:
-            # تنظيف الاسم من المسافات الزائدة
-            clean_name = ' '.join(name.split())
-            
-            # إعادة تشكيل النص العربي
-            reshaped_text = arabic_reshaper.reshape(clean_name)
+            # محاولة استخدام Arial (موجود في معظم الأنظمة)
+            pdfmetrics.registerFont(TTFont('Arabic', 'C:\\Windows\\Fonts\\Arial.ttf'))
+        except:
+            try:
+                # للينكس
+                pdfmetrics.registerFont(TTFont('Arabic', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
+            except:
+                try:
+                    # لماك
+                    pdfmetrics.registerFont(TTFont('Arabic', '/System/Library/Fonts/Arial.ttf'))
+                except:
+                    # آخر بديل
+                    from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+                    pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
+        
+        # معالجة الاسم العربي
+        try:
+            reshaped_text = arabic_reshaper.reshape(name)
             bidi_text = get_display(reshaped_text)
-            
-            app.logger.info(f"تمت معالجة الاسم: {clean_name} -> {bidi_text}")
-            
-        except Exception as e:
-            app.logger.error(f"خطأ في معالجة النص العربي: {str(e)}")
-            bidi_text = name  # استخدام النص الأصلي في حالة الفشل
-
-        # إنشاء الفقرة مع النص المعالج
-        paragraph = Paragraph(bidi_text, arabic_style)
-
-        story = [paragraph]
-        doc.build(story)
-
+        except:
+            bidi_text = name
+        
+        # ضبط خصائص النص
+        c.setFont('Arabic', 36)
+        c.setFillColorRGB(0, 0, 0)  # لون أسود
+        
+        # تحديد موقع الاسم على الشهادة
+        # هذه هي النقطة الأهم - جرب القيم التالية:
+        
+        # الخيار 1: في منتصف الشهادة
+        x_position = page_width / 2
+        y_position = page_height / 2 + 50  # عدل هذه القيمة حسب قالبك
+        
+        # رسم الاسم في المنتصف
+        c.drawCentredString(x_position, y_position, bidi_text)
+        
+        c.save()
+        
+        # دمج الـ overlay مع القالب
         packet.seek(0)
         overlay = PdfReader(packet)
-
+        
+        # دمج الصفحات
         output = PdfWriter()
         page.merge_page(overlay.pages[0])
         output.add_page(page)
-
+        
+        # حفظ النتيجة
         output_stream = io.BytesIO()
         output.write(output_stream)
         output_stream.seek(0)
-
+        
+        app.logger.info(f"تم إنشاء شهادة لـ: {name} في الموقع: ({x_position}, {y_position})")
+        
         return output_stream
-
+        
     except Exception as e:
-        app.logger.error(
-            f"فشل إنشاء الشهادة: {str(e)}",
-            exc_info=True
-        )
+        app.logger.error(f"فشل إنشاء الشهادة: {str(e)}", exc_info=True)
         return None
 
 
