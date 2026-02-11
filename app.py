@@ -30,10 +30,15 @@ def create_app():
         BASE_DIR, 'fonts', 'Amiri-Bold.ttf'
     )
 
+    # تأكيد إن الخط موجود
+    print("BASE_DIR:", BASE_DIR)
+    print("FONT_PATH:", app.config['FONT_PATH'])
+    print("Font exists:", os.path.exists(app.config['FONT_PATH']))
+
     app.logger.setLevel(logging.INFO)
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        '%(asctime)s %(levelname)s: %(message)s'
     ))
     app.logger.addHandler(stream_handler)
 
@@ -41,15 +46,6 @@ def create_app():
 
 
 app = create_app()
-
-
-# تسجيل الخط مرة واحدة عند تشغيل التطبيق
-if os.path.exists(app.config['FONT_PATH']):
-    pdfmetrics.registerFont(
-        TTFont('ArabicFont', app.config['FONT_PATH'])
-    )
-else:
-    print("⚠️ لم يتم العثور على ملف الخط:", app.config['FONT_PATH'])
 
 
 def verify_student(name):
@@ -67,15 +63,20 @@ def verify_student(name):
 
 def generate_certificate(name):
     try:
-        with open(app.config['TEMPLATE_PATH'], "rb") as f:
-            template = PdfReader(f)
-            page = template.pages[0]
+        template = PdfReader(open(app.config['TEMPLATE_PATH'], "rb"))
+        page = template.pages[0]
 
-        page_width = float(page.mediabox.width)
-        page_height = float(page.mediabox.height)
+        page_width = float(page.mediabox[2])
+        page_height = float(page.mediabox[3])
 
         packet = io.BytesIO()
         can = canvas.Canvas(packet, pagesize=(page_width, page_height))
+
+        # تسجيل الخط مرة واحدة فقط
+        if 'ArabicFont' not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(
+                TTFont('ArabicFont', app.config['FONT_PATH'])
+            )
 
         # معالجة النص العربي
         reshaped_text = arabic_reshaper.reshape(name)
@@ -93,6 +94,7 @@ def generate_certificate(name):
         x_pos = (page_width - text_width) / 2
 
         can.setFont('ArabicFont', font_size)
+        can.setFillColorRGB(0, 0, 0)
         can.drawString(x_pos, real_y, bidi_text)
         can.save()
 
