@@ -1,173 +1,26 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> FEE JOB FAIR </title>
-
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background-color: #f4f6f9;
-      margin: 0;
-      padding: 20px;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .form-card {
-      background-color: #ffffff;
-      width: 100%;
-      max-width: 380px;
-      border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-    }
-
-    .form-header {
-      background-color: #4a80e0; /* أزرق فاتح */
-      color: #fff;
-      padding: 20px 20px 5px; /* اضبطنا padding */
-      text-align: center;
-    }
-
-    .university-logo {
-      height: 130px;
-      width: auto;
-      margin-bottom: 10px;
-    }
-
-    .form-header h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
-    .form-body {
-      padding: 25px;
-    }
-
-    .form-group {
-      position: relative;
-      margin-bottom: 20px;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 12px 45px 12px 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-      outline: none;
-      transition: border-color 0.3s;
-    }
-
-    .form-group input:focus {
-      border-color: #2c60d9;
-    }
-
-    .form-group i {
-      position: absolute;
-      right: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #888;
-      font-size: 16px;
-    }
-
-    .submit-btn {
-      width: 100%;
-      padding: 12px;
-      background-color: #4a80e0;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .submit-btn:hover {
-      background-color: #1a4db3;
-    }
-
-    .alert {
-      text-align: center;
-      margin-bottom: 15px;
-      color: #d93025;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .form-footer {
-      padding: 15px;
-      text-align: center;
-      background: #f8f9fa;
-      border-top: 1px solid #eee;
-      font-size: 13px;
-      color: #555;
-    }
-
-    .form-footer a {
-      color: #2c60d9;
-      text-decoration: none;
-    }
-
-    @media (max-width: 360px) {
-      .form-header h2 {
-        font-size: 18px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>شهادة حضور</title>
+    <style>
+        @font-face {
+            font-family: 'Amiri';
+            src: url('/static/fonts/Amiri-Regular.ttf') format('truetype');
+        }
+        body {
+            font-family: 'Amiri', serif;
+            text-align: center;
+            direction: rtl;
+            padding-top: 250px; /* عدل حسب مكان الاسم في الشهادة */
+        }
+        h1 {
+            font-size: 48px;
+            color: #000;
+        }
+    </style>
 </head>
-
 <body>
-
-  <div class="form-card">
-    <div class="form-header">
-      <img src="https://image2url.com/r2/default/images/1770761018277-2ed74ec0-217d-417f-a918-836a5d38d780.png" class="university-logo" alt=" ">
-      
-    </div>
-
-    <div class="form-body">
-
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for category, message in messages %}
-            <div class="alert">{{ message }}</div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-
-      <form method="POST" action="/">
-        <div class="form-group">
-          <input type="text" name="name" placeholder="Name" required />
-          <i class="fas fa-user"></i>
-        </div>
-
-        <button type="submit" class="submit-btn">
-          <i class="fas fa-search"></i> Search
-        </button>
-      </form>
-
-    </div>
-
-    <div class="form-footer">
-      للاستفسارات أو الدعم الفني: <a href="https://wa.me/201282838798">من هنا </a>
-    </div>
-  </div>
-
+    <h1>{{ name }}</h1>
 </body>
 </html>
