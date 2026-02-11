@@ -8,10 +8,10 @@ import pandas as pd
 import sys
 
 def create_app():
-    app = Flask(name)
+    app = Flask(__name__)
     app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-123')
 
-    BASE_DIR = os.path.dirname(os.path.abspath(file))
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     app.config['TEMPLATE_PATH'] = os.path.join(BASE_DIR, 'static', 'certificates', 'template.pdf')
     app.config['EXCEL_PATH'] = os.path.join(BASE_DIR, 'students.xlsx')
 
@@ -130,5 +130,5 @@ def download_certificate():
         flash("حدث خطأ أثناء إنشاء الشهادة", "error")
         return redirect(url_for('index'))
 
-if name == 'main':
+if __name__ == '__main__':
     app.run()
