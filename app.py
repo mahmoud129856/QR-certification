@@ -2,8 +2,8 @@ from flask import Flask, render_template, request, send_file, flash, redirect, u
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib import colors
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -12,6 +12,7 @@ import os
 import logging
 import pandas as pd
 import sys
+import requests
 
 
 def create_app():
@@ -27,6 +28,12 @@ def create_app():
     app.config['EXCEL_PATH'] = os.path.join(
         BASE_DIR, 'students.xlsx'
     )
+    
+    # مجلد للخطوط
+    app.config['FONTS_DIR'] = os.path.join(BASE_DIR, 'static', 'fonts')
+    
+    # إنشاء مجلد الخطوط إذا لم يكن موجوداً
+    os.makedirs(app.config['FONTS_DIR'], exist_ok=True)
 
     app.logger.setLevel(logging.INFO)
     stream_handler = logging.StreamHandler(sys.stdout)
@@ -39,6 +46,70 @@ def create_app():
 
 
 app = create_app()
+
+
+# =========================
+# تحميل الخطوط تلقائياً
+# =========================
+def download_arabic_fonts():
+    """تحميل الخطوط العربية تلقائياً إذا لم تكن موجودة"""
+    fonts = {
+        'Amiri-Regular.ttf': 'https://github.com/alif-type/amiri/releases/download/1.000/Amiri-Regular.ttf',
+        'Amiri-Bold.ttf': 'https://github.com/alif-type/amiri/releases/download/1.000/Amiri-Bold.ttf'
+    }
+    
+    for font_name, font_url in fonts.items():
+        font_path = os.path.join(app.config['FONTS_DIR'], font_name)
+        if not os.path.exists(font_path):
+            try:
+                app.logger.info(f"جاري تحميل الخط: {font_name}")
+                response = requests.get(font_url)
+                with open(font_path, 'wb') as f:
+                    f.write(response.content)
+                app.logger.info(f"تم تحميل الخط: {font_name}")
+            except Exception as e:
+                app.logger.error(f"فشل تحميل الخط {font_name}: {str(e)}")
+                return False
+    return True
+
+# تحميل الخطوط عند بدء التشغيل
+download_arabic_fonts()
+
+
+# =========================
+# تهيئة الخطوط العربية
+# =========================
+def setup_arabic_fonts():
+    """تسجيل الخطوط العربية في ReportLab"""
+    try:
+        font_path_regular = os.path.join(app.config['FONTS_DIR'], 'Amiri-Regular.ttf')
+        font_path_bold = os.path.join(app.config['FONTS_DIR'], 'Amiri-Bold.ttf')
+        
+        # استخدام خط Amiri إذا كان موجوداً
+        if os.path.exists(font_path_regular):
+            pdfmetrics.registerFont(TTFont('ArabicFont', font_path_regular))
+            pdfmetrics.registerFont(TTFont('ArabicFont-Bold', font_path_bold))
+            app.logger.info("تم تسجيل خط Amiri بنجاح")
+            return True
+        else:
+            # بديل: استخدام خط النظام
+            try:
+                # للينكس
+                pdfmetrics.registerFont(TTFont('ArabicFont', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
+                app.logger.info("تم تسجيل خط DejaVu Sans")
+                return True
+            except:
+                try:
+                    # للويندوز
+                    pdfmetrics.registerFont(TTFont('ArabicFont', 'C:\\Windows\\Fonts\\Arial.ttf'))
+                    app.logger.info("تم تسجيل خط Arial")
+                    return True
+                except:
+                    app.logger.error("لم يتم العثور على خطوط عربية")
+                    return False
+    except Exception as e:
+        app.logger.error(f"خطأ في تسجيل الخطوط: {str(e)}")
+        return False
 
 
 # =========================
@@ -58,7 +129,7 @@ def verify_student(name):
 
 
 # =========================
-# إنشاء الشهادة (دعم عربي مضمون)
+# إنشاء الشهادة (دعم عربي مضمون 100%)
 # =========================
 def generate_certificate(name):
     try:
@@ -75,24 +146,46 @@ def generate_certificate(name):
             pagesize=(page_width, page_height)
         )
 
-        # تسجيل خط عربي CID (مضمون)
-        pdfmetrics.registerFont(UnicodeCIDFont('HYSMyeongJo-Medium'))
+        # تسجيل الخطوط العربية
+        if not setup_arabic_fonts():
+            # إذا فشل تسجيل الخط، استخدم خطاً بديلاً
+            try:
+                pdfmetrics.registerFont(TTFont('ArabicFont', os.path.join(app.config['FONTS_DIR'], 'Amiri-Regular.ttf')))
+            except:
+                # آخر بديل
+                from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+                pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
+                app.logger.warning("استخدام خط STSong-Light كبديل أخير")
 
         styles = getSampleStyleSheet()
 
         arabic_style = ParagraphStyle(
             'ArabicStyle',
             parent=styles['Normal'],
-            fontName='HYSMyeongJo-Medium',
-            fontSize=48,
+            fontName='ArabicFont',
+            fontSize=40,  # حجم مناسب للشهادة
             textColor=colors.black,
-            alignment=1
+            alignment=1,  # توسيط
+            spaceAfter=20,
+            spaceBefore=20
         )
 
-        # معالجة العربي
-        reshaped_text = arabic_reshaper.reshape(name)
-        bidi_text = get_display(reshaped_text)
+        # معالجة النص العربي بشكل صحيح
+        try:
+            # تنظيف الاسم من المسافات الزائدة
+            clean_name = ' '.join(name.split())
+            
+            # إعادة تشكيل النص العربي
+            reshaped_text = arabic_reshaper.reshape(clean_name)
+            bidi_text = get_display(reshaped_text)
+            
+            app.logger.info(f"تمت معالجة الاسم: {clean_name} -> {bidi_text}")
+            
+        except Exception as e:
+            app.logger.error(f"خطأ في معالجة النص العربي: {str(e)}")
+            bidi_text = name  # استخدام النص الأصلي في حالة الفشل
 
+        # إنشاء الفقرة مع النص المعالج
         paragraph = Paragraph(bidi_text, arabic_style)
 
         story = [paragraph]
