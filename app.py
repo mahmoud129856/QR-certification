@@ -43,6 +43,15 @@ def create_app():
 app = create_app()
 
 
+# تسجيل الخط مرة واحدة عند تشغيل التطبيق
+if os.path.exists(app.config['FONT_PATH']):
+    pdfmetrics.registerFont(
+        TTFont('ArabicFont', app.config['FONT_PATH'])
+    )
+else:
+    print("⚠️ لم يتم العثور على ملف الخط:", app.config['FONT_PATH'])
+
+
 def verify_student(name):
     try:
         df = pd.read_excel(app.config['EXCEL_PATH'], engine='openpyxl')
@@ -58,19 +67,15 @@ def verify_student(name):
 
 def generate_certificate(name):
     try:
-        template = PdfReader(open(app.config['TEMPLATE_PATH'], "rb"))
-        page = template.pages[0]
+        with open(app.config['TEMPLATE_PATH'], "rb") as f:
+            template = PdfReader(f)
+            page = template.pages[0]
 
-        page_width = float(page.mediabox[2])
-        page_height = float(page.mediabox[3])
+        page_width = float(page.mediabox.width)
+        page_height = float(page.mediabox.height)
 
         packet = io.BytesIO()
         can = canvas.Canvas(packet, pagesize=(page_width, page_height))
-
-        # تسجيل الخط العربي
-        pdfmetrics.registerFont(
-            TTFont('ArabicFont', app.config['FONT_PATH'])
-        )
 
         # معالجة النص العربي
         reshaped_text = arabic_reshaper.reshape(name)
@@ -81,14 +86,13 @@ def generate_certificate(name):
         real_y = page_height - y_pos
 
         # حساب عرض النص بعد المعالجة
-        text_width = can.stringWidth(
+        text_width = pdfmetrics.stringWidth(
             bidi_text, 'ArabicFont', font_size
         )
 
         x_pos = (page_width - text_width) / 2
 
         can.setFont('ArabicFont', font_size)
-        can.setFillColorRGB(0, 0, 0)
         can.drawString(x_pos, real_y, bidi_text)
         can.save()
 
