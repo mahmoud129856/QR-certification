@@ -158,7 +158,7 @@ def index():
         if verify_student(name):
             return render_template('certificate_ready.html', name=name)
         else:
-            flash("الاسم غير مسجل!", "error")
+            flash("الاسمq غير مسجل!", "error")
             
     return render_template('form.html')
 
