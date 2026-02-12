@@ -1,8 +1,6 @@
-Flask==3.0.2
-gunicorn==21.2.0
-PyPDF2==3.0.1
-reportlab==4.0.4
-pandas==2.2.3
-openpyxl==3.1.2
-arabic-reshaper
-python-bidi
+Flask
+gunicorn
+PyPDF2
+reportlab
+pandas
+openpyxl
