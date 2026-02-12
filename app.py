@@ -17,9 +17,12 @@ def create_app():
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     
+    # مسارات الملفات
     app.config['TEMPLATE_PATH'] = os.path.join(BASE_DIR, 'static', 'certificates', 'template.pdf')
     app.config['CSV_PATH'] = os.path.join(BASE_DIR, 'students.csv')
+    app.config['FONT_DIR'] = os.path.join(BASE_DIR, 'fonts')
     app.config['FONT_PATH'] = os.path.join(BASE_DIR, 'fonts', 'Amiri-Bold.ttf')
+    app.config['BEIN_FONT_PATH'] = os.path.join(BASE_DIR, 'fonts', 'beIN-Normal.ttf')
 
     app.logger.setLevel(logging.INFO)
     stream_handler = logging.StreamHandler(sys.stdout)
@@ -31,18 +34,32 @@ def create_app():
 app = create_app()
 
 # =========================
-# تسجيل الخط العربي
+# تسجيل الخطوط العربية
 # =========================
 font_registered = False
+bein_font_registered = False
+
+# تسجيل خط Amiri
 try:
     if os.path.exists(app.config['FONT_PATH']):
         pdfmetrics.registerFont(TTFont('ArabicFont', app.config['FONT_PATH']))
         font_registered = True
         app.logger.info("✅ تم تسجيل خط Amiri-Bold")
     else:
-        app.logger.warning("⚠️ الخط غير موجود - استخدام Helvetica")
+        app.logger.warning("⚠️ خط Amiri غير موجود")
 except Exception as e:
-    app.logger.warning(f"⚠️ فشل تسجيل الخط: {e}")
+    app.logger.warning(f"⚠️ فشل تسجيل Amiri: {e}")
+
+# تسجيل خط beIN Normal
+try:
+    if os.path.exists(app.config['BEIN_FONT_PATH']):
+        pdfmetrics.registerFont(TTFont('BeINFont', app.config['BEIN_FONT_PATH']))
+        bein_font_registered = True
+        app.logger.info("✅ تم تسجيل خط beIN Normal")
+    else:
+        app.logger.warning("⚠️ خط beIN Normal غير موجود في: " + app.config['BEIN_FONT_PATH'])
+except Exception as e:
+    app.logger.warning(f"⚠️ فشل تسجيل beIN Normal: {e}")
 
 # =========================
 # التحقق من الطالب
@@ -50,6 +67,7 @@ except Exception as e:
 def verify_student(name):
     try:
         if not os.path.exists(app.config['CSV_PATH']):
+            app.logger.warning("⚠️ ملف CSV غير موجود")
             return False
             
         with open(app.config['CSV_PATH'], 'r', encoding='utf-8-sig') as f:
@@ -59,7 +77,8 @@ def verify_student(name):
                 if student_name.upper() == name.strip().upper():
                     return True
         return False
-    except:
+    except Exception as e:
+        app.logger.error(f"❌ خطأ في قراءة CSV: {e}")
         return False
 
 # =========================
@@ -72,15 +91,16 @@ def fix_arabic(text):
         return text
 
 # =========================
-# إنشاء الشهادة - النسخة النهائية اللي بتشتغل 100%
+# إنشاء الشهادة - بخط beIN Normal واللون البني المحروق
+# مع وضع الاسم في المنتصف مائل لليسار قليلاً بنسبة ثابتة
 # =========================
 def generate_certificate(name):
     template_stream = None
     try:
-        # 1. فتح القالب وقراءته مرة واحدة
+        # 1. فتح القالب
         template_path = app.config['TEMPLATE_PATH']
         if not os.path.exists(template_path):
-            app.logger.error("❌ القالب غير موجود")
+            app.logger.error("❌ قالب الشهادة غير موجود")
             return None
             
         with open(template_path, 'rb') as f:
@@ -98,36 +118,51 @@ def generate_certificate(name):
         c = canvas.Canvas(packet, pagesize=(page_width, page_height))
         
         # 3. إعدادات النص
-        if font_registered:
+        if bein_font_registered:
+            c.setFont('BeINFont', 85)
+            display_name = fix_arabic(name)
+            app.logger.info("✏️ استخدام خط beIN Normal")
+        elif font_registered:
             c.setFont('ArabicFont', 70)
             display_name = fix_arabic(name)
+            app.logger.info("✏️ استخدام خط Amiri-Bold")
         else:
             c.setFont('Helvetica-Bold', 70)
             display_name = name
+            app.logger.info("✏️ استخدام خط Helvetica")
         
-        # 4. موقع الاسم (مضبوط زي ما انت عايز)
-        y_pos = 413
+        # 4. موقع الاسم عموديًا (ثابت)
+        y_pos = 645
         real_y = page_height - y_pos
         
-        # 5. توسيط الاسم
-        text_width = c.stringWidth(display_name, c._fontname, 70)
-        x_pos = (page_width - text_width) / 2
+        # 5. 🎯 حساب الوضع الأفقي الذكي - كل الأسماء بنفس التنسيق
+        font_size = 72 if bein_font_registered else 70
+        text_width = c.stringWidth(display_name, c._fontname, font_size)
         
-        # 6. رسم الاسم
-        c.setFillColorRGB(0, 0, 0)
+        # ✨ نسبة مئوية ثابتة من عرض الاسم (السر في تنسيق موحد)
+        offset_percentage = 0.265  # 3% - جرب 0.02 أو 0.04 حسب رغبتك
+        offset_left = - (text_width * offset_percentage)
+        
+        # حساب نقطة البداية: المنتصف + الإزاحة النسبية
+        x_pos = (page_width - text_width) / 2 + offset_left
+        
+        # للتجربة: ظهور قيمة الإزاحة في اللوج
+        app.logger.info(f"📐 اسم: {name}, عرض النص: {text_width:.2f}, إزاحة: {offset_left:.2f}, X: {x_pos:.2f}")
+        
+        # 6. رسم الاسم باللون البني المحروق
+        c.setFillColorRGB(0.18, 0.24, 0.41)  # #5C3317
         c.drawString(x_pos, real_y, display_name)
         c.save()
         
-        # 7. قراءة طبقة الكتابة
+        # 7. دمج الطبقات
         packet.seek(0)
         overlay = PdfReader(packet)
-        
-        # 8. دمج الطبقات
-        output = PdfWriter()
         page.merge_page(overlay.pages[0])
+        
+        # 8. حفظ النتيجة
+        output = PdfWriter()
         output.add_page(page)
         
-        # 9. حفظ النتيجة
         output_stream = io.BytesIO()
         output.write(output_stream)
         output_stream.seek(0)
@@ -139,7 +174,6 @@ def generate_certificate(name):
         app.logger.error(f"❌ فشل إنشاء الشهادة: {str(e)}")
         return None
     finally:
-        # التأكد من قفل الملفات
         if template_stream:
             template_stream.close()
 
@@ -158,7 +192,7 @@ def index():
         if verify_student(name):
             return render_template('certificate_ready.html', name=name)
         else:
-            flash("الاسم غير مسجل!", "error")
+            flash("الاسم غير مسجل في قاعدة البيانات!", "error")
             
     return render_template('form.html')
 
@@ -186,9 +220,9 @@ def download_certificate():
             return redirect(url_for('index'))
             
     except Exception as e:
-        app.logger.error(f"❌ خطأ: {str(e)}")
-        flash("حدث خطأ", "error")
+        app.logger.error(f"❌ خطأ في التحميل: {str(e)}")
+        flash("حدث خطأ أثناء إنشاء الشهادة", "error")
         return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
