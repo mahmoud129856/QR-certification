@@ -17,7 +17,6 @@ def create_app():
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     
-    # مسارات الملفات
     app.config['TEMPLATE_PATH'] = os.path.join(BASE_DIR, 'static', 'certificates', 'template.pdf')
     app.config['CSV_PATH'] = os.path.join(BASE_DIR, 'students.csv')
     app.config['FONT_DIR'] = os.path.join(BASE_DIR, 'fonts')
