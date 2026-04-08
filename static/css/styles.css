@@ -7,12 +7,12 @@
 
 /* RIGHT → LEFT for Arabic RTL + 45s SLOW + INSTANT START */
 @keyframes marquee-slow {
-    0% { transform: translateX(100%); }   /* RIGHT */
-    100% { transform: translateX(-100%); } /* LEFT */
+    0% { transform: translateX(-100%); }   /* RIGHT */
+    100% { transform: translateX(100%); } /* LEFT */
 }
 
 .animate-marquee-slow {
-    animation: marquee-slow 70s linear infinite;
+    animation: marquee-slow 100s linear infinite;
     animation-delay: 0s;
     animation-fill-mode: both;
     direction: rtl;
