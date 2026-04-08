@@ -20,7 +20,7 @@
 }
 
 .animate-marquee-slow {
-    animation: marquee-slow 25s linear infinite;
+    animation: marquee-slow 60s linear infinite;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
