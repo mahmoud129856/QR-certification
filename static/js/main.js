@@ -29,70 +29,79 @@ class CompetitionDashboard {
         });
     }
 
+    // MOBILE-OPTIMIZED Leaderboard
     renderLeaderboard() {
         const container = document.getElementById('leaderboard');
-        container.innerHTML = this.data.teams.map((team, index) => `
-            <div class="leaderboard-item flex items-center p-6 rounded-2xl bg-black/30 border border-white/20 hover:bg-white/10 ${index === 0 ? 'rank-1 glow' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : ''}">
-                <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center font-bold text-xl shadow-2xl ${index === 0 ? 'text-black scale-110' : ''}">
+        container.innerHTML = this.data.teams.slice(0, 6).map((team, index) => `
+            <div class="leaderboard-item group flex items-center p-4 rounded-xl bg-black/50 border border-white/30 hover:bg-white/10 transition-all duration-200 custom-scrollbar">
+                <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shadow-lg mr-3
+                    ${index === 0 ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black scale-110' : 
+                      index === 1 ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white' : 
+                      index === 2 ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white' : 
+                      'bg-white/20 text-white'}">
                     #${team.rank}
                 </div>
-                <div class="ml-6 flex-1 min-w-0">
-                    <h3 class="text-xl md:text-2xl font-bold truncate">${team.name}</h3>
-                    <div class="flex items-center space-x-4 text-sm opacity-90 mt-1">
-                        <span class="font-mono text-2xl">${team.score.toLocaleString()}</span>
-                        <span class="px-3 py-1 bg-white/20 rounded-full text-xs">+${Math.floor(Math.random() * 10)}</span>
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-bold text-base truncate">${team.name}</h3>
+                    <div class="flex items-center justify-between mt-1">
+                        <span class="font-mono text-lg font-bold text-yellow-400">${team.score}</span>
+                        <span class="px-2 py-0.5 bg-green-500/30 text-green-300 text-xs rounded-full font-medium">+${Math.floor(Math.random() * 5)}</span>
                     </div>
-                </div>
-                <div class="text-right ml-6">
-                    <i class="fas fa-arrow-up text-green-400 text-2xl"></i>
                 </div>
             </div>
         `).join('');
     }
 
+    // MOBILE-OPTIMIZED MVP
     renderMVP() {
         const { name, team, score } = this.data.mvp;
         document.getElementById('mvp-card').innerHTML = `
-            <div class="max-w-md mx-auto p-8 bg-black/30 rounded-3xl border-4 border-yellow-400/50 glow">
-                <div class="w-24 h-24 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full mx-auto mb-6 flex items-center justify-center text-3xl font-bold text-black shadow-2xl">
-                    <i class="fas fa-star"></i>
+            <div class="p-4 rounded-xl bg-black/40 border-2 border-yellow-400/50">
+                <div class="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full mx-auto mb-3 flex items-center justify-center shadow-xl">
+                    <i class="fas fa-star text-black text-xl"></i>
                 </div>
-                <h3 class="text-2xl md:text-3xl font-bold mb-2">${name}</h3>
-                <p class="text-lg opacity-90 mb-4">${team}</p>
-                <div class="font-mono text-4xl font-bold text-yellow-400">${score} pts</div>
+                <h3 class="font-bold text-lg mb-1 leading-tight">${name}</h3>
+                <p class="text-sm text-indigo-300 mb-3 truncate">${team}</p>
+                <div class="font-mono text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                    ${score} pts
+                </div>
             </div>
         `;
     }
 
+    // MOBILE-OPTIMIZED Teams
     renderTeamsOverview() {
         const container = document.getElementById('teams-grid');
-        container.innerHTML = this.data.teams.map(team => `
-            <div class="team-card bg-black/30 backdrop-blur-md rounded-3xl p-8 border border-white/20 hover:border-yellow-400/50">
-                <h3 class="text-xl font-bold mb-4 truncate">${team.name}</h3>
-                <div class="space-y-3 text-sm">
-                    <div class="flex items-center">
-                        <i class="fas fa-users text-blue-400 mr-3"></i>
-                        <span>${team.members} members</span>
+        container.innerHTML = this.data.teams.map((team, index) => `
+            <div class="p-4 rounded-xl bg-black/40 border border-white/20 hover:border-yellow-400/50 transition-all duration-200">
+                <div class="flex items-start justify-between mb-2">
+                    <h3 class="font-bold text-base flex-1 pr-2 truncate">${team.name}</h3>
+                    <span class="font-mono text-lg font-bold text-yellow-400">${team.score}</span>
+                </div>
+                <div class="space-y-2 text-xs text-indigo-300 -mx-1">
+                    <div class="flex items-center px-1">
+                        <i class="fas fa-users text-blue-400 mr-2 w-4"></i>
+                        ${team.members} members
                     </div>
-                    <div class="flex items-center">
-                        <i class="fas fa-lightbulb text-yellow-400 mr-3"></i>
-                        <span>${team.ideas} ideas</span>
-                    </div>
-                    <div class="flex items-center pt-4 border-t border-white/20">
-                        <i class="fas fa-coins text-green-400 mr-3"></i>
-                        <span class="font-mono text-2xl font-bold text-green-400">${team.score.toLocaleString()}</span>
+                    <div class="flex items-center px-1">
+                        <i class="fas fa-lightbulb text-yellow-400 mr-2 w-4"></i>
+                        ${team.ideas} ideas
                     </div>
                 </div>
             </div>
         `).join('');
     }
 
+    // MOBILE-OPTIMIZED News Ticker
     renderNewsTicker() {
-        const container = document.getElementById('news-ticker');
-        const newsItems = this.data.news.slice(0, 8).map(item => `<span class="mx-8 font-medium">${item}</span>`).join('');
-        container.querySelector('.animate-marquee').innerHTML = newsItems + newsItems; // Duplicate for seamless loop
+        const container = document.getElementById('news-marquee');
+        const newsItems = this.data.news.slice(0, 6).map(item => 
+            `<span class="mx-6 px-2 py-1 bg-black/50 rounded-lg font-medium text-sm">${item}</span>`
+        ).join('');
+        container.innerHTML = newsItems + newsItems; // Seamless loop
     }
 
+    // MOBILE-OPTIMIZED Chart
     renderChart() {
         const ctx = document.getElementById('scoreChart').getContext('2d');
         
@@ -103,55 +112,44 @@ class CompetitionDashboard {
         this.chart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: this.data.teams.map(team => team.name),
+                labels: this.data.teams.map(team => team.name.length > 12 ? team.name.substring(0,12) + '...' : team.name),
                 datasets: [{
-                    label: 'Score',
                     data: this.data.teams.map(team => team.score),
-                    backgroundColor: [
-                        'rgba(251, 191, 36, 0.8)',
-                        'rgba(59, 130, 246, 0.8)',
-                        'rgba(16, 185, 129, 0.8)',
-                        'rgba(168, 85, 247, 0.8)',
-                        'rgba(245, 158, 11, 0.8)',
-                        'rgba(236, 72, 153, 0.8)'
-                    ],
-                    borderColor: [
-                        'rgba(251, 191, 36, 1)',
-                        'rgba(59, 130, 246, 1)',
-                        'rgba(16, 185, 129, 1)',
-                        'rgba(168, 85, 247, 1)',
-                        'rgba(245, 158, 11, 1)',
-                        'rgba(236, 72, 153, 1)'
-                    ],
+                    backgroundColor: 'rgba(251, 191, 36, 0.8)',
+                    borderColor: 'rgba(251, 191, 36, 1)',
                     borderWidth: 2,
-                    borderRadius: 12,
+                    borderRadius: 8,
                     borderSkipped: false,
+                    barThickness: 28,
+                    maxBarThickness: 32,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: { color: 'rgba(255,255,255,0.1)' },
-                        ticks: { color: 'white' }
+                        grid: { color: 'rgba(255,255,255,0.08)' },
+                        ticks: { 
+                            color: 'white',
+                            font: { size: 11 },
+                            stepSize: 20
+                        }
                     },
                     x: {
                         grid: { display: false },
                         ticks: { 
                             color: 'white',
-                            maxRotation: 45,
-                            minRotation: 45
+                            font: { size: 11 },
+                            maxRotation: 0
                         }
                     }
                 },
                 animation: {
-                    duration: 2000,
-                    easing: 'easeOutBounce'
+                    duration: 1500,
+                    easing: 'easeOutQuart'
                 }
             }
         });
@@ -167,7 +165,6 @@ class CompetitionDashboard {
 
     startCountdown() {
         const endTime = new Date(this.data.end_time);
-        
         const updateCountdown = () => {
             const now = new Date();
             const diff = endTime - now;
@@ -178,9 +175,10 @@ class CompetitionDashboard {
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
                 
                 document.getElementById('countdown').textContent = 
-                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    `${hours}h ${minutes}m ${seconds}s`;
             } else {
-                document.getElementById('countdown').textContent = 'COMPETITION ENDED!';
+                document.getElementById('countdown').textContent = 'ENDED';
+                document.getElementById('countdown').className = 'text-sm font-mono bg-red-500/30 px-3 py-1.5 rounded-full border border-red-500/50 font-bold min-w-[80px] text-center';
             }
         };
 
@@ -192,11 +190,10 @@ class CompetitionDashboard {
         setInterval(async () => {
             await this.fetchData();
             this.renderAll();
-        }, 10000); // Refresh every 10 seconds
+        }, 15000);
     }
 }
 
-// Initialize dashboard when page loads
 document.addEventListener('DOMContentLoaded', () => {
     new CompetitionDashboard();
 });

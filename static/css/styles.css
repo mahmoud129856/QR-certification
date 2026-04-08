@@ -1,68 +1,74 @@
-@keyframes fade-in {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Mobile-First Animations */
+@keyframes slide-up {
+    from { 
+        opacity: 0; 
+        transform: translateY(30px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
 }
 
-.animate-fade-in {
-    animation: fade-in 0.8s ease-out forwards;
+.animate-slide-up {
+    animation: slide-up 0.6s ease-out forwards;
 }
 
-@keyframes marquee {
+@keyframes marquee-slow {
     0% { transform: translateX(100%); }
     100% { transform: translateX(-100%); }
 }
 
-.animate-marquee {
-    animation: marquee 30s linear infinite;
+.animate-marquee-slow {
+    animation: marquee-slow 25s linear infinite;
 }
 
-.glow {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
 }
 
-.rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.rank-2 { background: linear-gradient(135deg, #6b7280, #4b5563); }
-.rank-3 { background: linear-gradient(135deg, #10b981, #059669); }
-
-.team-card {
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
 }
 
-.team-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #fbbf24, #f59e0b);
+    border-radius: 2px;
 }
 
-.leaderboard-item {
-    transition: all 0.3s ease;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #f59e0b;
 }
 
-.leaderboard-item:hover {
-    transform: scale(1.02);
-}
-
-/* Mobile optimizations */
+/* Mobile Typography */
 @media (max-width: 640px) {
-    .animate-marquee {
-        animation-duration: 20s;
+    h1 { font-size: 1.25rem !important; }
+    h2 { font-size: 1.5rem !important; }
+    h3 { font-size: 1.125rem !important; }
+}
+
+/* Leaderboard Item Hover (subtle on mobile) */
+@media (hover: hover) {
+    .leaderboard-item:hover {
+        transform: translateX(4px);
     }
-    
-    #news-ticker {
-        h-14;
+}
+
+/* Glassmorphism Perfect for Mobile */
+.backdrop-blur-xl {
+    backdrop-filter: blur(20px);
+}
+
+/* Prevent horizontal scroll */
+html, body {
+    overflow-x: hidden;
+}
+
+/* iOS Safari fixes */
+@supports (-webkit-touch-callout: none) {
+    .backdrop-blur-xl {
+        backdrop-filter: blur(20px) saturate(180%);
     }
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.1);
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
-    border-radius: 4px;
 }
