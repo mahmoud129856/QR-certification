@@ -1,38 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Competition Dashboard</title>
+    <title>لوحة تحكم المسابقة</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontSize: {
-                        'mobile-xl': '1.5rem',
-                        'mobile-2xl': '1.875rem',
-                    }
-                }
-            }
-        }
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body class="bg-gradient-to-b from-slate-900 via-purple-900/50 to-indigo-900 min-h-screen text-white font-sans antialiased">
+<body class="bg-gradient-to-b from-slate-900 via-purple-900/50 to-indigo-900 min-h-screen text-white font-sans antialiased dir-rtl">
     
-    <!-- Mobile-First Header -->
-    <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-indigo-500/40 p-4 supports-[backdrop-filter:blur()]:bg-black/60">
+    <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-indigo-500/40 p-4">
         <div class="max-w-md mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-2 space-x-reverse">
                 <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
                     <i class="fas fa-trophy text-black text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight">Hackathon Live</h1>
-                    <p class="text-xs text-indigo-300">Real-time scores</p>
+                    <h1 class="text-lg font-bold tracking-tight">هاكاثون مباشر</h1>
+                    <p class="text-xs text-indigo-300">النتائج في الوقت الحقيقي</p>
                 </div>
             </div>
             <div id="countdown" class="text-sm font-mono bg-gradient-to-r from-yellow-400/20 to-orange-400/20 px-3 py-1.5 rounded-full border border-yellow-400/40 font-bold min-w-[120px] text-center"></div>
@@ -40,56 +27,44 @@
     </header>
 
     <main class="max-w-md mx-auto px-4 pb-24 space-y-6 w-full">
-        
-        <!-- Leaderboard Section - Mobile Optimized -->
         <section class="bg-black/30 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl animate-slide-up">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent flex items-center">
-                    <i class="fas fa-crown mr-2 w-6"></i>Leaderboard
+                    <i class="fas fa-crown mr-2 w-6"></i>الترتيب
                 </h2>
-                <span class="text-xs bg-black/50 px-2 py-1 rounded-full">Live</span>
+                <span class="text-xs bg-black/50 px-2 py-1 rounded-full">مباشر</span>
             </div>
-            <div id="leaderboard" class="space-y-3 max-h-80 overflow-y-auto -mx-3 px-3 pb-3 custom-scrollbar">
-                <!-- Dynamic content -->
-            </div>
+            <div id="leaderboard" class="space-y-3 max-h-80 overflow-y-auto -mx-3 px-3 pb-3 custom-scrollbar"></div>
         </section>
 
-        <!-- MVP Section - Compact Mobile Card -->
         <section class="bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-emerald-500/20 backdrop-blur-xl rounded-2xl p-6 border border-emerald-400/40 shadow-2xl animate-slide-up">
             <h2 class="text-xl font-bold mb-4 flex items-center text-emerald-300">
-                <i class="fas fa-user-astronaut mr-2 text-yellow-400"></i>MVP
+                <i class="fas fa-user-astronaut mr-2 text-yellow-400"></i>أفضل لاعب
             </h2>
-            <div id="mvp-card" class="text-center">
-                <!-- Dynamic content -->
-            </div>
+            <div id="mvp-card" class="text-center"></div>
         </section>
 
-        <!-- Score Chart - Mobile Optimized -->
         <section class="bg-black/30 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl animate-slide-up">
             <h2 class="text-xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                Scores
+                النتائج
             </h2>
             <div class="h-64 w-full relative">
                 <canvas id="scoreChart"></canvas>
             </div>
         </section>
 
-        <!-- Teams Overview - Mobile Cards -->
         <section class="bg-black/30 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl animate-slide-up">
             <h2 class="text-xl font-bold mb-6 text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Teams
+                الفرق
             </h2>
-            <div id="teams-grid" class="space-y-4">
-                <!-- Dynamic content -->
-            </div>
+            <div id="teams-grid" class="space-y-4"></div>
         </section>
-
     </main>
 
-    <!-- Mobile News Ticker -->
+    <!-- ARABIC RTL NEWS TICKER -->
     <div id="news-ticker" class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-xl border-t-2 border-yellow-500/50 z-40 h-14 flex items-center px-4">
-        <div id="news-marquee" class="flex items-center whitespace-nowrap animate-marquee-slow">
-            <!-- Dynamic content -->
+        <div id="news-marquee" class="flex items-center whitespace-nowrap animate-marquee-slow dir-rtl">
+            <!-- Dynamic Arabic content -->
         </div>
     </div>
 

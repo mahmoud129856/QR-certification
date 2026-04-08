@@ -1,43 +1,30 @@
-/* Mobile-First Animations */
 @keyframes slide-up {
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-slide-up {
-    animation: slide-up 0.6s ease-out forwards;
-}
+.animate-slide-up { animation: slide-up 0.6s ease-out forwards; }
 
-/* LEFT → RIGHT + SLOW 45s + INSTANT START */
+/* RIGHT → LEFT for Arabic RTL + 45s SLOW + INSTANT START */
 @keyframes marquee-slow {
-    0% { transform: translateX(-100%); }  /* Starts off LEFT */
-    100% { transform: translateX(100%); } /* Ends off RIGHT */
+    0% { transform: translateX(100%); }   /* RIGHT */
+    100% { transform: translateX(-100%); } /* LEFT */
 }
 
 .animate-marquee-slow {
     animation: marquee-slow 45s linear infinite;
-    animation-delay: 0s;              /* INSTANT START - NO DELAY */
-    animation-fill-mode: both;        /* Always visible */
+    animation-delay: 0s;
+    animation-fill-mode: both;
+    direction: rtl;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+.custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 2px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { 
+    background: linear-gradient(to bottom, #fbbf24, #f59e0b); 
+    border-radius: 2px; 
 }
-
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.05);
-    border-radius: 2px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #fbbf24, #f59e0b);
-    border-radius: 2px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #f59e0b;
-}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
 
 @media (max-width: 640px) {
     h1 { font-size: 1.25rem !important; }
@@ -45,22 +32,5 @@
     h3 { font-size: 1.125rem !important; }
 }
 
-@media (hover: hover) {
-    .leaderboard-item:hover {
-        transform: translateX(4px);
-    }
-}
-
-.backdrop-blur-xl {
-    backdrop-filter: blur(20px);
-}
-
-html, body {
-    overflow-x: hidden;
-}
-
-@supports (-webkit-touch-callout: none) {
-    .backdrop-blur-xl {
-        backdrop-filter: blur(20px) saturate(180%);
-    }
-}
+.backdrop-blur-xl { backdrop-filter: blur(20px); }
+html, body { overflow-x: hidden; }
