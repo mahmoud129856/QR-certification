@@ -12,7 +12,7 @@
 }
 
 .animate-marquee-slow {
-    animation: marquee-slow 45s linear infinite;
+    animation: marquee-slow 70s linear infinite;
     animation-delay: 0s;
     animation-fill-mode: both;
     direction: rtl;
