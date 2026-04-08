@@ -1,26 +1,23 @@
 /* Mobile-First Animations */
 @keyframes slide-up {
-    from { 
-        opacity: 0; 
-        transform: translateY(30px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
-    }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-slide-up {
     animation: slide-up 0.6s ease-out forwards;
 }
 
+/* LEFT → RIGHT + SLOW 45s + INSTANT START */
 @keyframes marquee-slow {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% { transform: translateX(-100%); }  /* Starts off LEFT */
+    100% { transform: translateX(100%); } /* Ends off RIGHT */
 }
 
 .animate-marquee-slow {
-    animation: marquee-slow 60s linear infinite;
+    animation: marquee-slow 45s linear infinite;
+    animation-delay: 0s;              /* INSTANT START - NO DELAY */
+    animation-fill-mode: both;        /* Always visible */
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -42,31 +39,26 @@
     background: #f59e0b;
 }
 
-/* Mobile Typography */
 @media (max-width: 640px) {
     h1 { font-size: 1.25rem !important; }
     h2 { font-size: 1.5rem !important; }
     h3 { font-size: 1.125rem !important; }
 }
 
-/* Leaderboard Item Hover (subtle on mobile) */
 @media (hover: hover) {
     .leaderboard-item:hover {
         transform: translateX(4px);
     }
 }
 
-/* Glassmorphism Perfect for Mobile */
 .backdrop-blur-xl {
     backdrop-filter: blur(20px);
 }
 
-/* Prevent horizontal scroll */
 html, body {
     overflow-x: hidden;
 }
 
-/* iOS Safari fixes */
 @supports (-webkit-touch-callout: none) {
     .backdrop-blur-xl {
         backdrop-filter: blur(20px) saturate(180%);

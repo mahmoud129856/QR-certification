@@ -8,7 +8,7 @@ app = Flask(__name__)
 # Mock data - in production, this would come from database
 def get_mock_data():
     teams = [
-        {"name": "كفر الباز", "score": 200, "members": 5, "ideas": 4},
+        {"name": "كفر الباز", "score": 20, "members": 5, "ideas": 4},
         {"name": "العناب ورفقاه", "score": 118, "members": 4, "ideas": 3},
         {"name": "تامر الجيار", "score": 130, "members": 5, "ideas": 2},
         {"name": "الاسطي عقله ب 1000", "score": 120, "members": 4, "ideas": 2},

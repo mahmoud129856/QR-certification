@@ -29,7 +29,6 @@ class CompetitionDashboard {
         });
     }
 
-    // MOBILE-OPTIMIZED Leaderboard
     renderLeaderboard() {
         const container = document.getElementById('leaderboard');
         container.innerHTML = this.data.teams.slice(0, 6).map((team, index) => `
@@ -52,7 +51,6 @@ class CompetitionDashboard {
         `).join('');
     }
 
-    // MOBILE-OPTIMIZED MVP
     renderMVP() {
         const { name, team, score } = this.data.mvp;
         document.getElementById('mvp-card').innerHTML = `
@@ -69,7 +67,6 @@ class CompetitionDashboard {
         `;
     }
 
-    // MOBILE-OPTIMIZED Teams
     renderTeamsOverview() {
         const container = document.getElementById('teams-grid');
         container.innerHTML = this.data.teams.map((team, index) => `
@@ -92,22 +89,19 @@ class CompetitionDashboard {
         `).join('');
     }
 
-    // MOBILE-OPTIMIZED News Ticker
+    // PERFECT NEWS TICKER - Triple content for instant seamless loop
     renderNewsTicker() {
         const container = document.getElementById('news-marquee');
         const newsItems = this.data.news.slice(0, 6).map(item => 
-            `<span class="mx-6 px-2 py-1 bg-black/50 rounded-lg font-medium text-sm">${item}</span>`
+            `<span class="mx-4 px-3 py-1 bg-black/60 rounded-lg font-medium text-sm">${item}</span>`
         ).join('');
-        container.innerHTML = newsItems + newsItems; // Seamless loop
+        // Triple = INSTANT START, no delay, seamless loop
+        container.innerHTML = newsItems + newsItems + newsItems;
     }
 
-    // MOBILE-OPTIMIZED Chart
     renderChart() {
         const ctx = document.getElementById('scoreChart').getContext('2d');
-        
-        if (this.chart) {
-            this.chart.destroy();
-        }
+        if (this.chart) this.chart.destroy();
 
         this.chart = new Chart(ctx, {
             type: 'bar',
@@ -132,25 +126,14 @@ class CompetitionDashboard {
                     y: {
                         beginAtZero: true,
                         grid: { color: 'rgba(255,255,255,0.08)' },
-                        ticks: { 
-                            color: 'white',
-                            font: { size: 11 },
-                            stepSize: 20
-                        }
+                        ticks: { color: 'white', font: { size: 11 }, stepSize: 20 }
                     },
                     x: {
                         grid: { display: false },
-                        ticks: { 
-                            color: 'white',
-                            font: { size: 11 },
-                            maxRotation: 0
-                        }
+                        ticks: { color: 'white', font: { size: 11 }, maxRotation: 0 }
                     }
                 },
-                animation: {
-                    duration: 1500,
-                    easing: 'easeOutQuart'
-                }
+                animation: { duration: 1500, easing: 'easeOutQuart' }
             }
         });
     }
@@ -168,20 +151,17 @@ class CompetitionDashboard {
         const updateCountdown = () => {
             const now = new Date();
             const diff = endTime - now;
-            
             if (diff > 0) {
                 const hours = Math.floor(diff / (1000 * 60 * 60));
                 const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                
-                document.getElementById('countdown').textContent = 
-                    `${hours}h ${minutes}m ${seconds}s`;
+                document.getElementById('countdown').textContent = `${hours}h ${minutes}m ${seconds}s`;
             } else {
-                document.getElementById('countdown').textContent = 'ENDED';
-                document.getElementById('countdown').className = 'text-sm font-mono bg-red-500/30 px-3 py-1.5 rounded-full border border-red-500/50 font-bold min-w-[80px] text-center';
+                const countdownEl = document.getElementById('countdown');
+                countdownEl.textContent = 'ENDED';
+                countdownEl.className = 'text-sm font-mono bg-red-500/30 px-3 py-1.5 rounded-full border border-red-500/50 font-bold min-w-[80px] text-center';
             }
         };
-
         updateCountdown();
         setInterval(updateCountdown, 1000);
     }
