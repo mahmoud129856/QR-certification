@@ -75,7 +75,7 @@ class CompetitionDashboard {
         const newsItems = this.data.news.slice(0, 6).map(item => 
             `<span class="mx-4 px-3 py-1 bg-black/60 rounded-lg font-medium text-sm text-right">${item}</span>`
         ).join('');
-        container.innerHTML = newsItems + newsItems + newsItems; // Seamless RTL
+        container.innerHTML = newsItems.repeat(25); // Seamless RTL
     }
 
     renderChart() {
