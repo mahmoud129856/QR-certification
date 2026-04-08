@@ -8,12 +8,11 @@ app = Flask(__name__)
 # Mock data - in production, this would come from database
 def get_mock_data():
     teams = [
-        {"name": "Team Alpha 🚀", "score": 125, "members": 5, "ideas": 4},
-        {"name": "Team Beta ⚡", "score": 118, "members": 4, "ideas": 3},
-        {"name": "Team Gamma 🔥", "score": 102, "members": 5, "ideas": 2},
-        {"name": "Team Delta 💎", "score": 89, "members": 4, "ideas": 2},
-        {"name": "Team Echo 🌟", "score": 76, "members": 3, "ideas": 1},
-        {"name": "Team Zeta 🦄", "score": 65, "members": 5, "ideas": 3}
+        {"name": "كفر الباز", "score": 125, "members": 5, "ideas": 4},
+        {"name": "العناب ورفقاه", "score": 118, "members": 4, "ideas": 3},
+        {"name": "تامر الجيار", "score": 130, "members": 5, "ideas": 2},
+        {"name": "الاسطي عقله ب 1000", "score": 120, "members": 4, "ideas": 2},
+        
     ]
     
     mvp = {
