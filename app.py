@@ -7,7 +7,7 @@ from supabase import create_client, Client
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
-ADMIN_PASSWORD_HASH = generate_password_hash('admin1111')
+ADMIN_PASSWORD_HASH = generate_password_hash('admin0000')
 
 # ========== إعداد Supabase ==========
 SUPABASE_URL = "https://lgpepojvzrgxmnzslvdc.supabase.co"
