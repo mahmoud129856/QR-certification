@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - المسابقة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900/30 to-indigo-900 min-h-screen p-8 font-sans">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-12">
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <div class="w-16 h-16 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-2xl">
+                    <i class="fas fa-tachometer-alt text-2xl text-black"></i>
+                </div>
+                <div>
+                    <h1 class="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent">
+                        لوحة التحكم
+                    </h1>
+                    <p class="text-gray-400">إدارة بيانات المسابقة في الوقت الحقيقي</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <a href="/admin/logout" class="bg-red-500/20 hover:bg-red-500/30 text-red-300 px-6 py-2 rounded-xl border border-red-500/30 hover:border-red-500/50 transition-all duration-200 flex items-center">
+                    <i class="fas fa-sign-out-alt ml-2"></i>خروج
+                </a>
+            </div>
+        </div>
+
+        <!-- الفرق -->
+        <div class="bg-black/50 backdrop-blur-xl p-8 rounded-3xl mb-12 border border-white/20 shadow-2xl">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                    <i class="fas fa-users ml-3"></i>الفرق
+                </h2>
+                <button onclick="addTeam()" class="bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-black font-bold px-8 py-3 rounded-2xl shadow-xl hover:shadow-green-500/50 transition-all duration-300">
+                    <i class="fas fa-plus ml-2"></i>فريق جديد
+                </button>
+            </div>
+            <div id="teams-list" class="space-y-4 min-h-[200px]"></div>
+        </div>
+
+        <!-- MVP + الأخبار -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <!-- MVP -->
+            <div class="bg-black/50 backdrop-blur-xl p-8 rounded-3xl border border-white/20 shadow-2xl">
+                <h2 class="text-2xl font-bold mb-6 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent flex items-center">
+                    <i class="fas fa-crown ml-3"></i>أفضل ليدر
+                </h2>
+                <div class="space-y-4">
+                    <input id="mvp-name" placeholder="اسم الليدر" class="w-full bg-gray-800/50 p-4 rounded-2xl border border-white/20 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30 transition-all text-white">
+                    <input id="mvp-team" placeholder="اسم الفريق" class="w-full bg-gray-800/50 p-4 rounded-2xl border border-white/20 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30 transition-all text-white">
+                    <input id="mvp-score" type="number" placeholder="النقاط" class="w-full bg-gray-800/50 p-4 rounded-2xl border border-white/20 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30 transition-all text-white">
+                </div>
+            </div>
+
+            <!-- الأخبار -->
+            <div class="bg-black/50 backdrop-blur-xl p-8 rounded-3xl border border-white/20 shadow-2xl">
+                <h2 class="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent flex items-center">
+                    <i class="fas fa-newspaper ml-3"></i>الأخبار
+                </h2>
+                <div class="space-y-4">
+                    <div class="flex space-x-2 space-x-reverse">
+                        <input id="new-news" placeholder="اكتب خبر جديد..." class="flex-1 bg-gray-800/50 p-4 rounded-2xl border border-white/20 focus:border-blue-400 text-white">
+                        <button onclick="addNews()" class="bg-blue-500 hover:bg-blue-600 px-6 py-4 rounded-2xl font-bold shadow-lg hover:shadow-blue-500/50 transition-all">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div id="news-list" class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- أزرار التحكم -->
+        <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+            <button onclick="saveAll()" class="flex-1 bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-black font-bold py-5 px-10 rounded-3xl text-xl shadow-2xl hover:shadow-emerald-500/50 transition-all duration-300 flex items-center justify-center mx-auto max-w-md">
+                <i class="fas fa-save ml-3"></i>حفظ كل شيء
+            </button>
+            <button onclick="resetPassword()" class="bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 text-black font-bold py-5 px-10 rounded-3xl text-xl shadow-2xl hover:shadow-red-500/50 transition-all duration-300 flex items-center justify-center mx-auto max-w-md">
+                <i class="fas fa-key ml-3"></i>تغيير كلمة السر
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let data = {{ data|tojson|safe }};
+        
+        function renderTeams() {
+            const container = document.getElementById('teams-list');
+            if (!data.teams || data.teams.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-12">لا توجد فرق - اضغط "فريق جديد"</p>';
+                return;
+            }
+            container.innerHTML = data.teams.map((team, i) => `
+                <div class="group p-6 bg-gray-800/50 rounded-2xl border border-white/20 hover:border-yellow-400/50 hover:bg-gray-700/50 transition-all duration-300 flex items-center justify-between">
+                    <div class="flex items-center space-x-4 space-x-reverse flex-1">
+                        <div class="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center font-bold text-black shadow-lg">#${i+1}</div>
+                        <input value="${escapeHtml(team.name)}" onchange="data.teams[${i}].name=this.value" class="flex-1 bg-transparent border-b border-white/30 focus:border-yellow-400 focus:outline-none text-xl font-bold p-2 text-white">
+                        <div class="text-left space-y-1">
+                            <div class="flex items-center text-sm text-gray-400">
+                                <i class="fas fa-users ml-2 text-blue-400"></i>${team.members} عضو
+                            </div>
+                            <div class="flex items-center text-sm text-gray-400">
+                                <i class="fas fa-lightbulb ml-2 text-yellow-400"></i>${team.ideas} فكرة
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                        <input type="number" value="${team.score}" onchange="data.teams[${i}].score=Number(this.value)" 
+                               class="w-24 bg-transparent border-b border-white/30 focus:border-yellow-400 text-2xl font-black text-yellow-400 text-center p-2">
+                        <button onclick="deleteTeam(${i})" 
+                                class="p-3 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-xl transition-all group-hover:scale-110">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function deleteTeam(index) {
+            if (confirm('هل أنت متأكد من حذف هذا الفريق؟')) {
+                data.teams.splice(index, 1);
+                renderTeams();
+                saveAll();
+            }
+        }
+        
+        function renderNews() {
+            const container = document.getElementById('news-list');
+            if (!data.news_items || data.news_items.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-8">لا توجد أخبار</p>';
+                return;
+            }
+            container.innerHTML = data.news_items.map((news, i) => `
+                <div class="flex items-center p-4 bg-gray-700/50 rounded-xl group hover:bg-gray-600/50 transition-all">
+                    <input value="${escapeHtml(news)}" onchange="data.news_items[${i}]=this.value" class="flex-1 bg-transparent p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/50 text-white">
+                    <button onclick="deleteNews(${i})" class="mr-3 p-2 text-red-400 hover:text-red-300 hover:bg-red-500/30 rounded-xl transition-all group-hover:scale-110">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        function deleteNews(index) {
+            data.news_items.splice(index, 1);
+            renderNews();
+            saveAll();
+        }
+        
+        function loadMVP() {
+            const mvp = data.mvp || {};
+            document.getElementById('mvp-name').value = mvp.name || '';
+            document.getElementById('mvp-team').value = mvp.team || '';
+            document.getElementById('mvp-score').value = mvp.score || 0;
+        }
+        
+        function addTeam() {
+            data.teams.push({name: `فريق ${data.teams.length + 1}`, score: 0, members: 3, ideas: 0});
+            renderTeams();
+            saveAll();
+        }
+        
+        function addNews() {
+            const input = document.getElementById('new-news');
+            if (input.value.trim()) {
+                data.news_items.push(input.value.trim());
+                input.value = '';
+                renderNews();
+                saveAll();
+            }
+        }
+        
+        async function saveAll() {
+            // تحديث بيانات MVP من الحقول
+            data.mvp = {
+                name: document.getElementById('mvp-name').value,
+                team: document.getElementById('mvp-team').value,
+                score: Number(document.getElementById('mvp-score').value) || 0
+            };
+            
+            try {
+                const response = await fetch('/admin/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        teams: data.teams,
+                        mvp: data.mvp,
+                        news_items: data.news_items
+                    })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showNotification('تم الحفظ بنجاح! 🎉', 'success');
+                } else {
+                    showNotification('خطأ في الحفظ!', 'error');
+                }
+            } catch (error) {
+                showNotification('خطأ في الاتصال!', 'error');
+            }
+        }
+        
+        async function resetPassword() {
+            const newPassword = prompt('أدخل كلمة السر الجديدة (6 أحرف على الأقل):');
+            if (newPassword && newPassword.length >= 6) {
+                try {
+                    const response = await fetch('/admin/reset-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: newPassword })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showNotification('تم تغيير كلمة السر بنجاح!', 'success');
+                    } else {
+                        showNotification('فشل تغيير كلمة السر', 'error');
+                    }
+                } catch (error) {
+                    showNotification('خطأ في الاتصال', 'error');
+                }
+            } else if (newPassword) {
+                showNotification('كلمة السر يجب أن تكون 6 أحرف على الأقل', 'error');
+            }
+        }
+        
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 left-4 z-50 p-4 rounded-2xl shadow-2xl text-white transform transition-all duration-300 ${
+                type === 'success' ? 'bg-emerald-500' : 'bg-red-500'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} ml-3"></i>
+                    ${message}
+                </div>
+            `;
+            document.body.appendChild(notification);
+            notification.style.transform = 'translateX(0)';
+            setTimeout(() => {
+                notification.style.transform = 'translateX(-150%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        // تهيئة الصفحة
+        renderTeams();
+        renderNews();
+        loadMVP();
+        
+        // حفظ تلقائي كل 10 ثوانٍ
+        setInterval(saveAll, 10000);
+    </script>
+</body>
+</html>
