@@ -3,64 +3,49 @@ from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
 import os
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
+import sys
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 ADMIN_PASSWORD_HASH = generate_password_hash('admin123')
 
-# ========== إعداد الاتصال بـ MongoDB Atlas ==========
+# ========== إعداد MongoDB ==========
 MONGO_URI = os.environ.get('MONGO_URI')
-if not MONGO_URI:
-    raise Exception("متغير البيئة MONGO_URI غير موجود. الرجاء إضافته في Vercel.")
+mongo_available = False
+db = None
 
-# محاولة الاتصال بقاعدة البيانات مع معالجة الأخطاء
-try:
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)  # مهلة 5 ثواني
-    # التحقق من الاتصال
-    client.admin.command('ping')
-    print("✅ تم الاتصال بـ MongoDB بنجاح")
-except (ConnectionFailure, ServerSelectionTimeoutError) as e:
-    print(f"❌ فشل الاتصال بـ MongoDB: {e}")
-    # في حالة فشل الاتصال، نستخدم متغير وهمي لتجنب الكراش (لكن سيظهر خطأ عند الاستخدام)
-    client = None
-
-# تحديد اسم قاعدة البيانات (يجب أن يكون موجوداً في URI أو نضعه هنا)
-if client:
-    # استخراج اسم قاعدة البيانات من URI إن أمكن، أو استخدام الافتراضي
-    db_name = "competition_db"
-    db = client[db_name]
-else:
-    db = None
-
-# ========== دوال مساعدة للتعامل مع MongoDB ==========
-def get_data_from_db():
-    """جلب جميع البيانات من MongoDB"""
-    if db is None:
-        # بيانات وهمية للاختبار في حالة فشل الاتصال
-        return {
-            "teams": [],
-            "mvp": {"name": "", "team": "", "score": 0},
-            "news_items": []
-        }
+if MONGO_URI:
     try:
-        teams = list(db.teams.find({}, {'_id': False}))
-        mvp = db.mvp.find_one({}, {'_id': False}) or {"name": "", "team": "", "score": 0}
-        news_items = [news['text'] for news in db.news.find({}, {'_id': False})]
-        return {
-            "teams": teams,
-            "mvp": mvp,
-            "news_items": news_items
-        }
+        from pymongo import MongoClient
+        from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        client.admin.command('ping')  # اختبار الاتصال
+        db = client.get_database("competition_db")
+        mongo_available = True
+        print("✅ تم الاتصال بـ MongoDB بنجاح", file=sys.stderr)
     except Exception as e:
-        print(f"خطأ في قراءة البيانات: {e}")
-        return {"teams": [], "mvp": {"name": "", "team": "", "score": 0}, "news_items": []}
+        print(f"⚠️ فشل الاتصال بـ MongoDB: {e}", file=sys.stderr)
+else:
+    print("⚠️ متغير MONGO_URI غير موجود - لن تُحفظ البيانات", file=sys.stderr)
+
+# ========== دوال البيانات ==========
+def get_data_from_db():
+    """جلب البيانات من MongoDB أو إرجاع بيانات فارغة"""
+    if mongo_available and db is not None:
+        try:
+            teams = list(db.teams.find({}, {'_id': False}))
+            mvp = db.mvp.find_one({}, {'_id': False}) or {"name": "", "team": "", "score": 0}
+            news_items = [news['text'] for news in db.news.find({}, {'_id': False})]
+            return {"teams": teams, "mvp": mvp, "news_items": news_items}
+        except Exception as e:
+            print(f"خطأ في قراءة MongoDB: {e}", file=sys.stderr)
+    # بيانات وهمية (فارغة) في حالة عدم توفر قاعدة البيانات
+    return {"teams": [], "mvp": {"name": "", "team": "", "score": 0}, "news_items": []}
 
 def save_data_to_db(data):
     """حفظ البيانات إلى MongoDB"""
-    if db is None:
-        raise Exception("قاعدة البيانات غير متصلة")
+    if not mongo_available or db is None:
+        raise Exception("⚠️ MongoDB غير متاح - البيانات لم تُحفظ. تأكد من إعداد MONGO_URI في Vercel.")
     try:
         db.teams.drop()
         db.mvp.drop()
@@ -73,37 +58,35 @@ def save_data_to_db(data):
             db.news.insert_many([{'text': news} for news in data['news_items']])
         return True
     except Exception as e:
-        print(f"خطأ في الحفظ: {e}")
+        print(f"خطأ في حفظ MongoDB: {e}", file=sys.stderr)
         raise e
 
 def create_default_data():
     """إنشاء بيانات افتراضية إذا كانت قاعدة البيانات فارغة"""
-    if db is None:
-        return
-    try:
-        if db.teams.count_documents({}) == 0:
-            default_data = {
-                "teams": [
-                    {"name": "كفر الباز", "score": 125, "members": 5, "ideas": 4},
-                    {"name": "الاسطي عقله ب 1000", "score": 118, "members": 4, "ideas": 3},
-                    {"name": "هبده مرتده", "score": 102, "members": 5, "ideas": 2}
-                ],
-                "mvp": {
-                    "name": "تامر الجيار",
-                    "team": "فريق الاسطي",
-                    "score": 30
-                },
-                "news_items": [
-                    "حالة هلع في التيم بسبب فويسات سليمان",
-                    "تسريب لتيم الصفحه .. محمود طه يقترب من حسم افضل تيم ليدر!!!"
-                ]
-            }
-            save_data_to_db(default_data)
-            print("✅ تم إنشاء البيانات الافتراضية")
-    except Exception as e:
-        print(f"خطأ في إنشاء البيانات الافتراضية: {e}")
+    if mongo_available and db is not None:
+        try:
+            if db.teams.count_documents({}) == 0:
+                default_data = {
+                    "teams": [
+                        {"name": "كفر الباز", "score": 125, "members": 5, "ideas": 4},
+                        {"name": "الاسطي عقله ب 1000", "score": 118, "members": 4, "ideas": 3},
+                        {"name": "هبده مرتده", "score": 102, "members": 5, "ideas": 2}
+                    ],
+                    "mvp": {
+                        "name": "تامر الجيار",
+                        "team": "فريق الاسطي",
+                        "score": 30
+                    },
+                    "news_items": [
+                        "حالة هلع في التيم بسبب فويسات سليمان",
+                        "تسريب لتيم الصفحه .. محمود طه يقترب من حسم افضل تيم ليدر!!!"
+                    ]
+                }
+                save_data_to_db(default_data)
+                print("✅ تم إنشاء البيانات الافتراضية", file=sys.stderr)
+        except Exception as e:
+            print(f"خطأ في إنشاء البيانات الافتراضية: {e}", file=sys.stderr)
 
-# استدعاء إنشاء البيانات الافتراضية
 create_default_data()
 
 # ========== Routes ==========
@@ -129,10 +112,8 @@ def admin_login():
             return redirect(url_for('admin_panel'))
         else:
             flash('كلمة السر خاطئة! 🚫', 'error')
-    
     if session.get('admin_logged_in'):
         return redirect(url_for('admin_panel'))
-    
     return render_template('admin_login.html')
 
 @app.route('/admin/logout')
