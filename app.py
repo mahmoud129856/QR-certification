@@ -1,85 +1,52 @@
 from flask import Flask, render_template, jsonify, request, session, redirect, url_for, flash
 from datetime import datetime, timedelta
+import json
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
-import os
-from pymongo import MongoClient
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
-ADMIN_PASSWORD_HASH = generate_password_hash('admin123')
 
-# ========== إعداد الاتصال بـ MongoDB Atlas ==========
-MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/competition_db')
-client = MongoClient(MONGO_URI)
-# تحديد اسم قاعدة البيانات (يفضل أن يكون موجوداً في URI، ولكن نحدده هنا أيضاً)
-db_name = os.environ.get('MONGO_DB_NAME', 'competition_db')
-db = client[db_name]
-
-# ========== دوال مساعدة للتعامل مع MongoDB ==========
-def get_data_from_db():
-    """جلب جميع البيانات من MongoDB"""
-    teams = list(db.teams.find({}, {'_id': False}))
-    mvp = db.mvp.find_one({}, {'_id': False}) or {"name": "", "team": "", "score": 0}
-    news_items = [news['text'] for news in db.news.find({}, {'_id': False})]
-    return {
-        "teams": teams,
-        "mvp": mvp,
-        "news_items": news_items
-    }
-
-def save_data_to_db(data):
-    """حفظ البيانات إلى MongoDB (استبدال المجموعات بالكامل)"""
-    # حذف المجموعات القديمة
-    db.teams.drop()
-    db.mvp.drop()
-    db.news.drop()
-    
-    # إدراج البيانات الجديدة
-    if data.get('teams'):
-        db.teams.insert_many(data['teams'])
-    if data.get('mvp'):
-        db.mvp.insert_one(data['mvp'])
-    if data.get('news_items'):
-        db.news.insert_many([{'text': news} for news in data['news_items']])
-    return True
+ADMIN_PASSWORD_HASH = generate_password_hash('admin1111')
 
 def create_default_data():
-    """إنشاء بيانات افتراضية إذا كانت قاعدة البيانات فارغة"""
-    if db.teams.count_documents({}) == 0:
-        default_data = {
-            "teams": [
-                {"name": "كفر الباز", "score": 125, "members": 5, "ideas": 4},
-                {"name": "الاسطي عقله ب 1000", "score": 118, "members": 4, "ideas": 3},
-                {"name": "هبده مرتده", "score": 102, "members": 5, "ideas": 2}
-            ],
-            "mvp": {
-                "name": "تامر الجيار",
-                "team": "فريق الاسطي",
-                "score": 30
-            },
-            "news_items": [
-                "حالة هلع في التيم بسبب فويسات سليمان",
-                "تسريب لتيم الصفحه .. محمود طه يقترب من حسم افضل تيم ليدر!!!"
-            ]
-        }
-        save_data_to_db(default_data)
+    default_data = {
+        "teams": [
+            {"name": "كفر الباز", "score": 125, "members": 5, "ideas": 4},
+            {"name": "الاسطي عقله ب 1000", "score": 118, "members": 4, "ideas": 3},
+            {"name": "هبده مرتده", "score": 102, "members": 5, "ideas": 2}
+        ],
+        "mvp": {
+            "name": "تامر الجيار",
+            "team": "فريق الاسطي",
+            "score": 30
+        },
+        "news_items": [
+            "حالة هلع في التيم بسبب فويسات سليمان",
+            "تسريب لتيم الصفحه .. محمود طه يقترب من حسم افضل تيم ليدر!!!"
+        ]
+    }
+    os.makedirs('static', exist_ok=True)
+    with open('static/data.json', 'w', encoding='utf-8') as f:
+        json.dump(default_data, f, ensure_ascii=False, indent=2)
 
-# استدعاء إنشاء البيانات الافتراضية عند بدء التشغيل
-create_default_data()
-
-# ========== Routes ==========
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/api/data')
 def api_data():
-    data = get_data_from_db()
-    end_time = datetime.now() + timedelta(hours=2, minutes=30)
-    data['end_time'] = end_time.isoformat()
-    data['news'] = data['news_items']  # للتوافق مع frontend
-    return jsonify(data)
+    try:
+        with open('static/data.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        end_time = datetime.now() + timedelta(hours=2, minutes=30)
+        data['end_time'] = end_time.isoformat()
+        data['news'] = data['news_items']
+        return jsonify(data)
+    except FileNotFoundError:
+        create_default_data()
+        return api_data()
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_login():
@@ -108,7 +75,14 @@ def admin_panel():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     
-    data = get_data_from_db()
+    try:
+        with open('static/data.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except:
+        create_default_data()
+        with open('static/data.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    
     return render_template('admin_dashboard.html', data=data)
 
 @app.route('/admin/save', methods=['POST'])
@@ -118,7 +92,8 @@ def save_data():
     
     try:
         data = request.json
-        save_data_to_db(data)
+        with open('static/data.json', 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
         return jsonify({"success": True, "message": "تم الحفظ بنجاح! 🎉"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -134,4 +109,5 @@ def reset_password():
     return jsonify({"success": True, "message": "تم تغيير كلمة السر!"})
 
 if __name__ == '__main__':
+    create_default_data()
     app.run(debug=True, port=5000)
