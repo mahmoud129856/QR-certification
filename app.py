@@ -37,38 +37,50 @@ def get_data_from_supabase():
         return {"teams": [], "mvp": {"name": "", "team": "", "score": 0}, "news_items": []}
 
 def save_data_to_supabase(data):
-    """حفظ البيانات إلى Supabase (استبدال كامل)"""
+    """حفظ البيانات إلى Supabase (استبدال كامل) - النسخة المحسنة"""
     try:
-        # حذف الجداول القديمة (نحذف كل السجلات)
-        supabase.table('teams').delete().neq('id', 0).execute()  # حذف الكل
+        print("💾 بدء عملية الحفظ...")
+        
+        # حذف البيانات القديمة فقط
+        supabase.table('teams').delete().neq('id', 0).execute()
         supabase.table('mvp').delete().neq('id', 0).execute()
         supabase.table('news_items').delete().neq('id', 0).execute()
+        
+        print("🗑️ تم حذف البيانات القديمة")
         
         # إدراج الفرق الجديدة
         if data.get('teams'):
             for team in data['teams']:
                 supabase.table('teams').insert(team).execute()
+        print(f"✅ تم حفظ {len(data.get('teams', []))} فريق")
         
         # إدراج MVP
         if data.get('mvp'):
             supabase.table('mvp').insert(data['mvp']).execute()
+        print("✅ تم حفظ MVP")
         
         # إدراج الأخبار
         if data.get('news_items'):
             for news_text in data['news_items']:
                 supabase.table('news_items').insert({"text": news_text}).execute()
+        print(f"✅ تم حفظ {len(data.get('news_items', []))} خبر")
         
+        print("🎉 تم الحفظ بنجاح!")
         return True
+        
     except Exception as e:
-        print(f"خطأ في الحفظ إلى Supabase: {e}")
+        print(f"❌ خطأ في الحفظ إلى Supabase: {e}")
         raise e
 
 def create_default_data():
-    """إنشاء بيانات افتراضية إذا كانت الجداول فارغة"""
+    """إنشاء بيانات افتراضية إذا كانت الجداول فارغة تماماً"""
     try:
         # التحقق من وجود بيانات في جدول الفرق
         count_response = supabase.table('teams').select('*', count='exact').execute()
+        
+        # ✅ شرط صارم - فقط لو الجدول فاضي تماماً
         if count_response.count == 0:
+            print("⚠️ الجداول فارغة تماماً - إنشاء بيانات افتراضية...")
             default_data = {
                 "teams": [
                     {"name": "كفر الباز", "score": 125, "members": 5, "ideas": 4},
@@ -87,13 +99,19 @@ def create_default_data():
             }
             save_data_to_supabase(default_data)
             print("✅ تم إنشاء البيانات الافتراضية في Supabase")
+        else:
+            print(f"✅ الجداول تحتوي على بيانات ({count_response.count} سجل) - لا حاجة للبيانات الافتراضية")
+            
     except Exception as e:
         print(f"خطأ في إنشاء البيانات الافتراضية: {e}")
 
-# استدعاء إنشاء البيانات عند بدء التشغيل
-create_default_data()
+# ✅ تشغيل البيانات الافتراضية مرة واحدة عند بدء التطبيق
+@app.before_first_request
+def initialize_app():
+    """تشغيل مرة واحدة عند بدء التطبيق"""
+    create_default_data()
 
-# ========== Routes (تعديل طفيف) ==========
+# ========== Routes ==========
 @app.route('/')
 def index():
     return render_template('index.html')
