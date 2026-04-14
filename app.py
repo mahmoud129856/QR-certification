@@ -11,7 +11,7 @@ ADMIN_PASSWORD_HASH = generate_password_hash('admin0000')
 
 # ========== إعداد Supabase ==========
 SUPABASE_URL = "https://lgpepojvzrgxmnzslvdc.supabase.co"
-SUPABASE_KEY = "sb_publishable_7OCn_h7exZqDAr3ldlc3hQ_mWWUjxoU"  # anon key
+SUPABASE_KEY = "sb_publishable_7OCn_h7exZqDAr3ldlc3hQ_mWWUjxoU"
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -19,15 +19,12 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 def get_data_from_supabase():
     """جلب البيانات من جداول Supabase"""
     try:
-        # جلب الفرق
         teams_response = supabase.table('teams').select('*').execute()
         teams = teams_response.data
         
-        # جلب MVP
         mvp_response = supabase.table('mvp').select('*').limit(1).execute()
         mvp = mvp_response.data[0] if mvp_response.data else {"name": "", "team": "", "score": 0}
         
-        # جلب الأخبار
         news_response = supabase.table('news_items').select('text').order('created_at', desc=False).execute()
         news_items = [item['text'] for item in news_response.data]
         
@@ -37,79 +34,68 @@ def get_data_from_supabase():
         return {"teams": [], "mvp": {"name": "", "team": "", "score": 0}, "news_items": []}
 
 def save_data_to_supabase(data):
-    """حفظ البيانات إلى Supabase (استبدال كامل) - النسخة المحسنة"""
+    """حفظ البيانات إلى Supabase - النسخة المحسنة"""
     try:
-        print("💾 بدء عملية الحفظ...")
+        print("💾 بدء الحفظ...")
         
-        # حذف البيانات القديمة فقط
+        # حذف البيانات القديمة
         supabase.table('teams').delete().neq('id', 0).execute()
         supabase.table('mvp').delete().neq('id', 0).execute()
         supabase.table('news_items').delete().neq('id', 0).execute()
         
-        print("🗑️ تم حذف البيانات القديمة")
-        
-        # إدراج الفرق الجديدة
+        # إدراج الفرق
         if data.get('teams'):
             for team in data['teams']:
                 supabase.table('teams').insert(team).execute()
-        print(f"✅ تم حفظ {len(data.get('teams', []))} فريق")
         
         # إدراج MVP
         if data.get('mvp'):
             supabase.table('mvp').insert(data['mvp']).execute()
-        print("✅ تم حفظ MVP")
         
         # إدراج الأخبار
         if data.get('news_items'):
             for news_text in data['news_items']:
                 supabase.table('news_items').insert({"text": news_text}).execute()
-        print(f"✅ تم حفظ {len(data.get('news_items', []))} خبر")
         
-        print("🎉 تم الحفظ بنجاح!")
+        print("🎉 الحفظ نجح!")
         return True
-        
     except Exception as e:
-        print(f"❌ خطأ في الحفظ إلى Supabase: {e}")
+        print(f"❌ خطأ في الحفظ: {e}")
         raise e
 
-def create_default_data():
-    """إنشاء بيانات افتراضية إذا كانت الجداول فارغة تماماً"""
+def check_and_create_default_data():
+    """التحقق من البيانات الافتراضية - النسخة الآمنة لـ Vercel"""
     try:
-        # التحقق من وجود بيانات في جدول الفرق
-        count_response = supabase.table('teams').select('*', count='exact').execute()
-        
-        # ✅ شرط صارم - فقط لو الجدول فاضي تماماً
+        # فحص سريع - لو مفيش فرق خالص
+        count_response = supabase.table('teams').select('id', count='exact').execute()
         if count_response.count == 0:
-            print("⚠️ الجداول فارغة تماماً - إنشاء بيانات افتراضية...")
+            print("⚠️ الجداول فارغة - إنشاء بيانات افتراضية...")
             default_data = {
                 "teams": [
                     {"name": "كفر الباز", "score": 125, "members": 5, "ideas": 4},
                     {"name": "الاسطي عقله ب 1000", "score": 118, "members": 4, "ideas": 3},
                     {"name": "هبده مرتده", "score": 102, "members": 5, "ideas": 2}
                 ],
-                "mvp": {
-                    "name": "تامر الجيار",
-                    "team": "فريق الاسطي",
-                    "score": 30
-                },
+                "mvp": {"name": "تامر الجيار", "team": "فريق الاسطي", "score": 30},
                 "news_items": [
                     "حالة هلع في التيم بسبب فويسات سليمان",
                     "تسريب لتيم الصفحه .. محمود طه يقترب من حسم افضل تيم ليدر!!!"
                 ]
             }
             save_data_to_supabase(default_data)
-            print("✅ تم إنشاء البيانات الافتراضية في Supabase")
         else:
-            print(f"✅ الجداول تحتوي على بيانات ({count_response.count} سجل) - لا حاجة للبيانات الافتراضية")
-            
+            print(f"✅ البيانات موجودة ({count_response.count} فريق)")
     except Exception as e:
-        print(f"خطأ في إنشاء البيانات الافتراضية: {e}")
+        print(f"خطأ في الفحص: {e}")
 
-# ✅ تشغيل البيانات الافتراضية مرة واحدة عند بدء التطبيق
-@app.before_first_request
-def initialize_app():
-    """تشغيل مرة واحدة عند بدء التطبيق"""
-    create_default_data()
+# ✅ تشغيل الفحص مرة واحدة عند أول طلب (آمن لـ Vercel)
+@app.before_request
+def before_request():
+    if not hasattr(g, 'data_initialized'):
+        check_and_create_default_data()
+        g.data_initialized = True
+
+from flask import g  # ✅ إضافة هذا السطر
 
 # ========== Routes ==========
 @app.route('/')
